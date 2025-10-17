@@ -22,6 +22,7 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
       'model': 'assets/models/cafe.glb',
       'icon': Icons.local_cafe,
       'color': const Color(0xFF8D6E63),
+      'points': 50,
       'description':
           'Edificio histórico con arquitectura colonial de principios del siglo XX.',
     },
@@ -31,6 +32,7 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
       'model': 'assets/models/Edificio.glb',
       'icon': Icons.apartment,
       'color': const Color(0xFF4CAF50),
+      'points': 40,
       'description': 'Edificio emblemático del centro de Villahermosa.',
     },
     {
@@ -39,6 +41,7 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
       'model': 'assets/models/catedral.glb',
       'icon': Icons.church,
       'color': const Color(0xFF2196F3),
+      'points': 30,
       'description': 'Hermosa catedral en el centro de Villahermosa.',
     },
     {
@@ -47,6 +50,7 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
       'model': 'assets/models/malecon.glb',
       'icon': Icons.water,
       'color': const Color(0xFF00BCD4),
+      'points': 25,
       'description': 'Paseo a orillas del río Grijalva.',
     },
   ];
@@ -214,6 +218,13 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    // Obtener padding del sistema (incluye áreas de accesibilidad)
+    final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    // Calcular altura dinámica para las tarjetas según el tamaño de pantalla
+    final cardHeight = screenHeight < 700 ? 110.0 : 120.0;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -225,16 +236,19 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
 
           // UI Principal
           SafeArea(
+            bottom: false, // Desactivamos SafeArea en la parte inferior
             child: Column(
               children: [
                 _buildHeader(),
-                const Spacer(),
-                if (!showViewer) _buildInstructions(),
-                const Spacer(),
-                // Lista de monumentos al final
-                _buildMonumentsList(),
-                const SizedBox(
-                    height: 30), // Aumentado para evitar solapamiento
+                Expanded(
+                  child: !showViewer
+                      ? Center(child: _buildInstructions())
+                      : const SizedBox.shrink(),
+                ),
+                // Lista de monumentos al final con padding dinámico
+                _buildMonumentsList(cardHeight),
+                // Espaciado adicional para el botón de accesibilidad
+                SizedBox(height: bottomPadding > 0 ? bottomPadding + 16 : 80),
               ],
             ),
           ),
@@ -243,7 +257,7 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
           if (showViewer)
             Positioned(
               right: 20,
-              bottom: 180,
+              bottom: cardHeight + bottomPadding + 80, // Posición dinámica
               child: _buildFloatingCloseButton(),
             ),
         ],
@@ -344,6 +358,7 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           AnimatedBuilder(
             animation: _pulseController,
@@ -416,11 +431,15 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildMonumentsList() {
+  Widget _buildMonumentsList(double cardHeight) {
     final provider = Provider.of<AppProvider>(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // Ajustar ancho de tarjetas según pantalla
+    final cardWidth = screenWidth < 360 ? 90.0 : 100.0;
 
     return Container(
-      height: 160,
+      height: cardHeight,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
@@ -434,11 +453,11 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
           return GestureDetector(
             onTap: () => setState(() => selectedModelIndex = index),
             child: Container(
-              width: 120,
-              margin: const EdgeInsets.only(right: 15),
+              width: cardWidth,
+              margin: const EdgeInsets.only(right: 12),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.9),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: isSelected
                       ? monument['color']
@@ -464,15 +483,15 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
                     children: [
                       Icon(
                         monument['icon'],
-                        size: 40,
+                        size: 30,
                         color: isSelected || isVisited
                             ? monument['color']
                             : Colors.grey,
                       ),
                       if (isVisited)
                         Positioned(
-                          right: -5,
-                          top: -5,
+                          right: -4,
+                          top: -4,
                           child: Container(
                             padding: const EdgeInsets.all(2),
                             decoration: const BoxDecoration(
@@ -481,49 +500,32 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
                             ),
                             child: const Icon(
                               Icons.check,
-                              size: 16,
+                              size: 10,
                               color: Colors.white,
                             ),
                           ),
                         ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 4),
                   // Nombre del monumento
-                  Text(
-                    monument['name'],
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected || isVisited
-                          ? const Color(0xFF5D4037)
-                          : Colors.grey,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  // Puntos
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: (isVisited ? Colors.green : Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
                     child: Text(
-                      '+${monument['points']}',
+                      monument['name'],
                       style: TextStyle(
-                        fontSize: 11,
-                        color: isVisited ? Colors.white : Colors.grey.shade700,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected || isVisited
+                            ? const Color(0xFF5D4037)
+                            : Colors.grey,
                       ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   // Botón de Ver en 3D o Info
                   if (hasModel)
                     GestureDetector(
@@ -535,8 +537,8 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
+                          horizontal: 8,
+                          vertical: 4,
                         ),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
@@ -545,11 +547,11 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
                               monument['color'].withOpacity(0.8),
                             ],
                           ),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                           boxShadow: [
                             BoxShadow(
                               color: monument['color'].withOpacity(0.3),
-                              blurRadius: 8,
+                              blurRadius: 6,
                               offset: const Offset(0, 2),
                             ),
                           ],
@@ -559,14 +561,14 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
                           children: [
                             Icon(
                               Icons.view_in_ar,
-                              size: 16,
+                              size: 11,
                               color: Colors.white,
                             ),
-                            SizedBox(width: 4),
+                            SizedBox(width: 3),
                             Text(
                               'Ver 3D',
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 8,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
@@ -583,26 +585,26 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
+                          horizontal: 8,
+                          vertical: 4,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.grey.shade300,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               Icons.info_outline,
-                              size: 16,
+                              size: 11,
                               color: Colors.grey,
                             ),
-                            SizedBox(width: 4),
+                            SizedBox(width: 3),
                             Text(
-                              'Ver Info',
+                              'Info',
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 8,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.grey,
                               ),

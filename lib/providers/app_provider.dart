@@ -9,6 +9,10 @@ class AppProvider extends ChangeNotifier {
   int _level = 1;
   int get level => _level;
 
+  // Logros del usuario
+  List<Map<String, dynamic>> achievements = [];
+  List<Map<String, dynamic>> get userAchievements => achievements;
+
   // Lugares visitados
   final List<String> _visitedPlaces = [];
   List<String> get visitedPlaces => _visitedPlaces;
@@ -18,11 +22,21 @@ class AppProvider extends ChangeNotifier {
   Map<String, bool> get completedTrivias => _completedTrivias;
 
   // Mascotas desbloqueadas
-  final List<String> _unlockedPets = ['perro', 'gato', 'pajaro'];
+  final List<String> _unlockedPets = [
+    'iguana',
+    'hicotea',
+    'coati',
+    'cocodrilo',
+    'pejelagarto',
+    'jaguar',
+    'pijije',
+    'mono_arana',
+    'manati',
+  ]; // <-- VALORES NUEVOS
   List<String> get unlockedPets => _unlockedPets;
 
-  // Mascota actual seleccionada
-  String _currentPet = 'perro';
+// Mascota actual seleccionada
+  String _currentPet = 'iguana';
   String get currentPet => _currentPet;
   String get selectedPet => _currentPet;
 

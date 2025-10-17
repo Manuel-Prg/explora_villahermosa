@@ -23,7 +23,7 @@ dependencies:
   
   # Location & Maps (opcional - comenta si no usas)
   geolocator: ^12.0.0
-  google_maps_flutter: ^2.6.1
+  flutter_map: ^6.1.0
   
   # Storage & Preferences
   shared_preferences: ^2.2.3
@@ -36,6 +36,7 @@ dependencies:
   url_launcher: ^6.2.6
   webview_flutter: ^4.7.0
   android_intent_plus: ^5.0.2
+  latlong2: ^0.9.1
 
 dev_dependencies:
   flutter_test:
@@ -48,6 +49,7 @@ flutter:
 
   assets:
    - assets/models/
+   - assets/logo/
 
   # No incluir fuentes personalizadas si no existen
   # fonts:
@@ -57,13 +59,11 @@ flutter:
 
   # Assets opcionales para imágenes (si las necesitas)
   # assets:
-  #   - assets/images/
   #   - assets/icons/
 
 # Configuración de íconos de la app (opcional)
-flutter_icons:
+flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/icon.png"
-  adaptive_icon_background: "#FFD54F"
-  adaptive_icon_foreground: "assets/icon/icon.png"
+  image_path: "assets/logo/logo_sinFondo.png"
+  remove_alpha_ios: true

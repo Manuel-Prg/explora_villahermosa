@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 
@@ -11,481 +12,296 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  late GoogleMapController mapController;
+  // Centro del mapa ajustado a la Plaza de Armas
+  final LatLng _initialCenter = const LatLng(17.989, -92.948);
 
-  // Coordenadas de Villahermosa, Tabasco
-  final LatLng _center = const LatLng(17.9892, -92.9475);
-
-  final Set<Marker> _markers = {};
-  String? selectedSite;
-
+  // LISTA ACTUALIZADA con los lugares de la imagen
   final List<Map<String, dynamic>> touristSites = [
+    {
+      'id': 'palacio_gobierno',
+      'name': 'Palacio de Gobierno',
+      'description': 'Sede del poder ejecutivo estatal.',
+      'position': const LatLng(17.98790, -92.91951),
+      'reward': 30
+    },
+    {
+      'id': 'tribunal_justicia',
+      'name': 'Tribunal Superior de Justicia',
+      'description': 'Sede del poder judicial.',
+      'position': const LatLng(17.987391, -92.919755),
+      'reward': 20
+    },
     {
       'id': 'casa_azulejos',
       'name': 'Casa de los Azulejos',
-      'description': 'Edificio histórico de 1890',
-      'position': const LatLng(17.9892, -92.9475),
-      'visited': false,
-      'reward': 50,
+      'description': 'Museo de Historia de Tabasco.',
+      'position': const LatLng(17.98842, -92.91841),
+      'reward': 30
     },
     {
-      'id': 'catedral',
-      'name': 'Catedral del Señor',
-      'description': 'Templo principal de la ciudad',
-      'position': const LatLng(17.9896, -92.9450),
-      'visited': false,
-      'reward': 50,
+      'id': 'parque_juarez',
+      'name': 'Parque Juárez',
+      'description': 'Principal parque público del centro.',
+      'position': const LatLng(17.99109, -92.91751),
+      'reward': 20
     },
     {
-      'id': 'palacio',
-      'name': 'Palacio de Gobierno',
-      'description': 'Sede del poder ejecutivo',
-      'position': const LatLng(17.9900, -92.9485),
-      'visited': false,
-      'reward': 50,
+      'id': 'iglesia_concepcion',
+      'name': 'Iglesia de la Inmaculada Concepción',
+      'description': 'Conocida como "La Conchita".',
+      'position': const LatLng(17.98630, -92.91974),
+      'reward': 25
     },
     {
-      'id': 'parque_museo',
-      'name': 'Parque Museo La Venta',
-      'description': 'Parque arqueológico olmeca',
-      'position': const LatLng(18.0050, -92.9520),
-      'visited': false,
-      'reward': 100,
+      'id': 'casa_pellicer',
+      'name': 'Casa Carlos Pellicer Cámara',
+      'description': 'Casa museo del poeta.',
+      'position': const LatLng(17.99031, -92.91909),
+      'reward': 25
     },
     {
-      'id': 'malecón',
-      'name': 'Malecón Carlos A. Madrazo',
-      'description': 'Paseo junto al río Grijalva',
-      'position': const LatLng(17.9885, -92.9430),
-      'visited': false,
-      'reward': 30,
+      'id': 'biblioteca_Manuel_R',
+      'name': 'Biblioteca Manuel R. Mora',
+      'description': 'Biblioteca pública histórica.',
+      'position': const LatLng(17.98735, -92.91919),
+      'reward': 30
+    },
+    {
+      'id': 'biblioteca:José_E',
+      'name': 'Biblioteca José E. de Cárdenas',
+      'description': 'Biblioteca pública histórica.',
+      'position': const LatLng(17.98755, -92.91917),
+      'reward': 25
+    },
+    {
+      'id': 'centro_cultural',
+      'name': 'Centro Cultural Villahermosa',
+      'description': 'Espacio para las artes y la cultura.',
+      'position': const LatLng(17.99097, -92.91696),
+      'reward': 25
+    },
+    {
+      'id': 'ayuntamiento',
+      'name': 'Palacio Municipal (Ayuntamiento)',
+      'description': 'Oficinas del gobierno de Centro.',
+      'position': const LatLng(17.986994, -92.919476),
+      'reward': 20
+    },
+    {
+      'id': 'plaza_bicentenario',
+      'name': 'Plaza Bicentenario',
+      'description': 'Plaza conmemorativa con fuente.',
+      'position': const LatLng(17.98831, -92.91942),
+      'reward': 15
+    },
+    {
+      'id': 'casa_agua_ujat',
+      'name': 'Casa Universitaria del Agua UJAT',
+      'description': 'Museo interactivo sobre el agua.',
+      'position': const LatLng(17.99051, -92.92016),
+      'reward': 40
+    },
+    {
+      'id': 'calle_juarez',
+      'name': 'Calle Benito Juárez',
+      'description': 'Calle conmemorativa.',
+      'position': const LatLng(17.98848, -92.91858),
+      'reward': 10
+    },
+    {
+      'id': 'parque_morelos',
+      'name': 'Parque Morelos',
+      'description': 'Parque con áreas verdes y recreativas.',
+      'position': const LatLng(17.988914, -92.922353),
+      'reward': 40
+    },
+    {
+      'id': 'instituto_juarez',
+      'name': 'Instituto Juárez',
+      'description': 'Instituto educativo en el centro.',
+      'position': const LatLng(17.98889, -92.92111),
+      'reward': 25
+    },
+    {
+      'id': 'parque_pajaritos',
+      'name': 'Parque los Pajaritos',
+      'description': 'Parque popular en el centro.',
+      'position': const LatLng(17.99039, -92.91986),
+      'reward': 15
+    },
+    {
+      'id': 'parque_corregidora',
+      'name': 'Parque Corregidora',
+      'description': 'Parque con jardines y áreas recreativas.',
+      'position': const LatLng(17.98823, -92.91891),
+      'reward': 25
+    },
+    {
+      'id': 'museo_de_tabasco',
+      'name': 'Museo de Tabasco',
+      'description': 'Parque museo.',
+      'position': const LatLng(17.99077, -92.91730),
+      'reward': 30
+    },
+    {
+      'id': 'banco_de_mexico',
+      'name': 'Banco de México',
+      'description': 'Sede del banco central.',
+      'position': const LatLng(17.98855, -92.91833),
+      'reward': 25
+    },
+    {
+      'id': 'casa_josefina',
+      'name': 'Casa Josefina vicens',
+      'description': 'Casa histórica en el centro.',
+      'position': const LatLng(17.99415, -92.91463),
+      'reward': 15
+    },
+    {
+      'id': 'hotel_one_centro',
+      'name': 'Hotel One (Centro)',
+      'description': 'Hotel en la zona centro.',
+      'position': const LatLng(17.99126, -92.91822),
+      'reward': 10
+    },
+    {
+      'id': 'plaza_de_armas',
+      'name': 'Plaza de Armas',
+      'description': 'El corazón del centro histórico.',
+      'position': const LatLng(17.8789, -92.91948),
+      'reward': 20
+    },
+    {
+      'id': 'cine_sheba',
+      'name': 'Cine Sheba',
+      'description': 'Antiguo cine icónico de Villahermosa.',
+      'position': const LatLng(17.98795, -92.91752),
+      'reward': 10
+    },
+    {
+      'id': 'carcel_y_ayuntamiento',
+      'name': 'Cárcel y Ayuntamiento',
+      'description': 'Edificios históricos en el centro.',
+      'position': const LatLng(17.986844, -92.919186),
+      'reward': 15
+    },
+    {
+      'id': 'casa_piedra',
+      'name': 'Casa de Piedra',
+      'description': 'Casa histórica en el centro.',
+      'position': const LatLng(17.98709, -92.91986),
+      'reward': 15
     },
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _createMarkers();
-  }
-
-  void _createMarkers() {
-    for (var site in touristSites) {
-      _markers.add(
-        Marker(
-          markerId: MarkerId(site['id']),
-          position: site['position'],
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            site['visited']
-                ? BitmapDescriptor.hueGreen
-                : BitmapDescriptor.hueRed,
-          ),
-          infoWindow: InfoWindow(
-            title: site['name'],
-            snippet: site['description'],
-          ),
-          onTap: () => _onMarkerTapped(site),
-        ),
-      );
-    }
-  }
-
-  void _onMarkerTapped(Map<String, dynamic> site) {
-    setState(() {
-      selectedSite = site['id'];
-    });
-    _showSiteDetails(site);
-  }
-
-  void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
-  }
 
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<AppProvider>(context);
 
-    return Scaffold(
-      body: Stack(
-        children: [
-          GoogleMap(
-            onMapCreated: _onMapCreated,
-            initialCameraPosition: CameraPosition(target: _center, zoom: 14.0),
-            markers: _markers,
-            myLocationEnabled: true,
-            myLocationButtonEnabled: true,
-            mapType: MapType.normal,
-            zoomControlsEnabled: false,
-            compassEnabled: true,
-          ),
-
-          // Header
-          Positioned(top: 0, left: 0, right: 0, child: _buildHeader(provider)),
-
-          // Legend
-          Positioned(bottom: 20, left: 20, child: _buildLegend()),
-
-          // Zoom Controls
-          Positioned(bottom: 20, right: 20, child: _buildZoomControls()),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(AppProvider provider) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 10,
-        bottom: 15,
-        left: 20,
-        right: 20,
-      ),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF66BB6A).withOpacity(0.95),
-            const Color(0xFF4CAF50).withOpacity(0.95),
-          ],
-        ),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    // Convertimos tus sitios en Marcadores para el mapa
+    List<Marker> markers = touristSites.map((site) {
+      bool isVisited = provider.visitedPlaces.contains(site['id']);
+      return Marker(
+        width: 100.0,
+        height: 80.0,
+        point: site['position'],
+        child: GestureDetector(
+          onTap: () => _showSiteDetails(site),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Mapa Turístico',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+              Icon(
+                Icons.location_pin,
+                color: isVisited ? Colors.green.shade700 : Colors.red.shade700,
+                size: 40,
+                shadows: const [Shadow(color: Colors.black54, blurRadius: 5)],
               ),
-              Row(
-                children: [
-                  Icon(Icons.monetization_on, color: Colors.amber.shade300),
-                  const SizedBox(width: 5),
-                  Text(
-                    '${provider.points}',
+              Flexible(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Text(
+                    site['name'],
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Colors.black,
                     ),
                   ),
-                ],
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.location_on, color: Colors.white, size: 18),
-                const SizedBox(width: 5),
-                Text(
-                  'Sitios visitados: ${provider.sitesVisited}/20',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLegend() {
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            'Leyenda',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF5D4037),
-            ),
-          ),
-          const SizedBox(height: 8),
-          _buildLegendItem(Colors.red, 'No visitado'),
-          _buildLegendItem(Colors.green, 'Visitado'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLegendItem(Color color, String label) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF8D6E63)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildZoomControls() {
-    return Column(
-      children: [
-        FloatingActionButton(
-          heroTag: 'zoom_in',
-          mini: true,
-          backgroundColor: Colors.white,
-          onPressed: () {
-            mapController.animateCamera(CameraUpdate.zoomIn());
-          },
-          child: const Icon(Icons.add, color: Color(0xFF4CAF50)),
-        ),
-        const SizedBox(height: 10),
-        FloatingActionButton(
-          heroTag: 'zoom_out',
-          mini: true,
-          backgroundColor: Colors.white,
-          onPressed: () {
-            mapController.animateCamera(CameraUpdate.zoomOut());
-          },
-          child: const Icon(Icons.remove, color: Color(0xFF4CAF50)),
-        ),
-      ],
-    );
-  }
-
-  void _showSiteDetails(Map<String, dynamic> site) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(25),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 50,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF66BB6A).withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Icon(
-                    site['visited'] ? Icons.check_circle : Icons.location_on,
-                    size: 40,
-                    color: site['visited']
-                        ? const Color(0xFF66BB6A)
-                        : const Color(0xFFEF5350),
-                  ),
-                ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        site['name'],
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF5D4037),
-                        ),
-                      ),
-                      Text(
-                        site['visited'] ? '¡Ya visitado!' : 'Por visitar',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: site['visited']
-                              ? const Color(0xFF66BB6A)
-                              : const Color(0xFF8D6E63),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Text(
-              site['description'],
-              style: const TextStyle(
-                fontSize: 15,
-                color: Color(0xFF5D4037),
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFE082).withOpacity(0.3),
-                borderRadius: BorderRadius.circular(15),
-                border: Border.all(
-                  color: const Color(0xFFFFE082),
-                  width: 2,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.monetization_on, color: Colors.amber.shade700),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Recompensa: ${site['reward']} monedas',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF5D4037),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _navigateToSite(site);
-                    },
-                    icon: const Icon(Icons.directions),
-                    label: const Text('Cómo llegar'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4CAF50),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                    ),
-                  ),
-                ),
-                if (!site['visited']) ...[
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _markAsVisited(site);
-                      },
-                      icon: const Icon(Icons.check),
-                      label: const Text('Marcar'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF66BB6A),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _navigateToSite(Map<String, dynamic> site) {
-    mapController.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(target: site['position'], zoom: 17.0),
-      ),
-    );
-  }
-
-  void _markAsVisited(Map<String, dynamic> site) {
-    final provider = Provider.of<AppProvider>(context, listen: false);
-    provider.visitSite(site['id']);
-
-    setState(() {
-      site['visited'] = true;
-      _markers.removeWhere((m) => m.markerId.value == site['id']);
-      _markers.add(
-        Marker(
-          markerId: MarkerId(site['id']),
-          position: site['position'],
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueGreen,
-          ),
-          infoWindow: InfoWindow(
-            title: site['name'],
-            snippet: site['description'],
-          ),
-          onTap: () => _onMarkerTapped(site),
         ),
       );
-    });
+    }).toList();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('¡Sitio visitado! +${site['reward']} monedas'),
-        backgroundColor: const Color(0xFF66BB6A),
-        duration: const Duration(seconds: 2),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Mapa Turístico'),
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+      ),
+      body: FlutterMap(
+        options: MapOptions(
+          initialCenter: _initialCenter,
+          initialZoom: 16.5, // Aumenté el zoom para ver mejor el centro
+        ),
+        children: [
+          // 1. Capa base del mapa (viene de OpenStreetMap)
+          TileLayer(
+            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            userAgentPackageName: 'com.explora_villahermosa.app',
+          ),
+
+          // 2. Capa de marcadores (nuestros puntos de interés)
+          MarkerLayer(markers: markers),
+        ],
+      ),
+    );
+  }
+
+  // Puedes reusar tu función para mostrar detalles, con ligeros ajustes
+  void _showSiteDetails(Map<String, dynamic> site) {
+    final provider = Provider.of<AppProvider>(context, listen: false);
+    final isVisited = provider.visitedPlaces.contains(site['id']);
+
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(site['name'],
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            Text(site['description']),
+            const SizedBox(height: 20),
+            if (!isVisited)
+              ElevatedButton.icon(
+                icon: const Icon(Icons.check),
+                label: Text('Marcar como Visitado (+${site['reward']} Puntos)'),
+                onPressed: () {
+                  provider.addPoints(site['reward']);
+                  provider.visitPlace(site['id']);
+                  Navigator.pop(context);
+                  setState(() {}); // Para redibujar el mapa con el nuevo estado
+                },
+              )
+            else
+              const Text('¡Ya has visitado este lugar!',
+                  style: TextStyle(
+                      color: Colors.green, fontWeight: FontWeight.bold)),
+          ],
+        ),
       ),
     );
   }

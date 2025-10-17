@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'screens/home_screen.dart';
 import 'screens/trivia_screen.dart';
+import 'screens/map_screen.dart';
 import 'screens/ar_screen.dart';
 import 'screens/pets_screen.dart';
 import 'providers/app_provider.dart';
@@ -66,7 +67,7 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           elevation: 5,
           shadowColor: Colors.black12,
           shape: RoundedRectangleBorder(
@@ -160,7 +161,8 @@ class _SplashScreenState extends State<SplashScreen>
                     child: Opacity(
                       opacity: _fadeAnimation.value,
                       child: Container(
-                        padding: const EdgeInsets.all(30),
+                        padding: const EdgeInsets.all(
+                            20), // Ajusta el padding si tu logo no es circular
                         decoration: BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
@@ -172,10 +174,10 @@ class _SplashScreenState extends State<SplashScreen>
                             ),
                           ],
                         ),
-                        child: const Icon(
-                          Icons.location_city,
-                          size: 80,
-                          color: Color(0xFFFF9800),
+                        child: Image.asset(
+                          'assets/logo/logo_sinFondo.png',
+                          width: 140, // <-- Ajusta el tamaño de tu logo
+                          fit: BoxFit.contain,
                         ),
                       ),
                     ),
@@ -237,6 +239,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     const HomeScreen(),
     const TriviaScreen(),
     const ARScreen(),
+    const MapScreen(),
     const PetsScreen(),
   ];
 
@@ -295,7 +298,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
                 _buildNavItem(Icons.home_rounded, 'Inicio', 0),
                 _buildNavItem(Icons.quiz_rounded, 'Trivia', 1),
                 _buildNavItem(Icons.camera_alt_rounded, 'AR', 2),
-                _buildNavItem(Icons.pets_rounded, 'Mascotas', 3),
+                _buildNavItem(Icons.map_rounded, 'Mapa', 3),
+                _buildNavItem(Icons.pets_rounded, 'Mascotas', 4),
               ],
             ),
           ),

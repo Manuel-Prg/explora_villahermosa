@@ -1,32 +1,93 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import 'dart:math' as math;
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+  late AnimationController _shimmerController;
+  late AnimationController _floatController;
+
+  @override
+  void initState() {
+    super.initState();
+    _shimmerController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    )..repeat();
+
+    _floatController = AnimationController(
+      duration: const Duration(milliseconds: 3000),
+      vsync: this,
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _shimmerController.dispose();
+    _floatController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
+    final isSmallScreen = screenHeight < 700;
+    final isMediumScreen = screenWidth < 380;
+
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(context),
-                const SizedBox(height: 30),
-                _buildWelcomeCard(context),
-                const SizedBox(height: 25),
-                _buildSectionTitle('Lugares Turísticos'),
-                const SizedBox(height: 15),
-                _buildTouristPlaces(context),
-                const SizedBox(height: 25),
-                _buildSectionTitle('Actividades'),
-                const SizedBox(height: 15),
-                _buildActivitiesGrid(context),
-              ],
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFFFFF8E1),
+              const Color(0xFFFFE0B2).withOpacity(0.3),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                isMediumScreen ? 16 : 20,
+                isMediumScreen ? 16 : 20,
+                isMediumScreen ? 16 : 20,
+                isSmallScreen ? 12 : 20,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(context, isMediumScreen),
+                  SizedBox(height: isSmallScreen ? 20 : 25),
+                  _buildWelcomeCard(context, isMediumScreen, isSmallScreen),
+                  SizedBox(height: isSmallScreen ? 20 : 25),
+                  _buildQuickStats(context, isMediumScreen, isSmallScreen),
+                  SizedBox(height: isSmallScreen ? 20 : 25),
+                  _buildSectionTitle('Lugares Turísticos', Icons.place,
+                      const Color(0xFF4CAF50)),
+                  SizedBox(height: isSmallScreen ? 12 : 15),
+                  _buildTouristPlaces(context, isMediumScreen, isSmallScreen),
+                  SizedBox(height: isSmallScreen ? 20 : 25),
+                  _buildSectionTitle('Actividades', Icons.local_activity,
+                      const Color(0xFF9C27B0)),
+                  SizedBox(height: isSmallScreen ? 12 : 15),
+                  _buildActivitiesGrid(context, isMediumScreen, isSmallScreen),
+                  // Espaciado para botón de accesibilidad
+                  SizedBox(height: bottomPadding > 0 ? bottomPadding + 16 : 80),
+                ],
+              ),
             ),
           ),
         ),
@@ -34,141 +95,341 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, bool isMediumScreen) {
     final appProvider = Provider.of<AppProvider>(context);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '¡Bienvenido!',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF5D4037),
-                  ),
-            ),
-            Text(
-              'Explora Villahermosa',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: const Color(0xFF8D6E63),
-                  ),
-            ),
-          ],
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFFFFD54F), Color(0xFFFFB74D)],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.orange.withOpacity(0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
+        Flexible(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.stars, color: Colors.white, size: 20),
-              const SizedBox(width: 5),
+              Row(
+                children: [
+                  Text(
+                    '👋',
+                    style: TextStyle(fontSize: isMediumScreen ? 24 : 28),
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      '¡Bienvenido!',
+                      style: TextStyle(
+                        fontSize: isMediumScreen ? 22 : 26,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF5D4037),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
               Text(
-                '${appProvider.points}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                'Explora Villahermosa',
+                style: TextStyle(
+                  fontSize: isMediumScreen ? 13 : 15,
+                  color: const Color(0xFF8D6E63),
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        AnimatedBuilder(
+          animation: _shimmerController,
+          builder: (context, child) {
+            return Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isMediumScreen ? 14 : 16,
+                vertical: isMediumScreen ? 10 : 12,
+              ),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: const [
+                    Color(0xFFFFD54F),
+                    Color(0xFFFFB74D),
+                    Color(0xFFFF9800)
+                  ],
+                  stops: [
+                    _shimmerController.value - 0.3,
+                    _shimmerController.value,
+                    _shimmerController.value + 0.3,
+                  ].map((e) => e.clamp(0.0, 1.0)).toList(),
+                ),
+                borderRadius: BorderRadius.circular(25),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.orange.withOpacity(0.4),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.stars, color: Colors.white, size: 20),
+                  const SizedBox(width: 6),
+                  Text(
+                    '${appProvider.points}',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: isMediumScreen ? 16 : 18,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWelcomeCard(
+      BuildContext context, bool isMediumScreen, bool isSmallScreen) {
+    final appProvider = Provider.of<AppProvider>(context);
+    final progressValue = (appProvider.points % 100) / 100;
+
+    return AnimatedBuilder(
+      animation: _floatController,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, math.sin(_floatController.value * math.pi * 2) * 3),
+          child: Container(
+            padding: EdgeInsets.all(isMediumScreen ? 18 : 22),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFFFF6F00),
+                  Color(0xFFFF9800),
+                  Color(0xFFFFB74D)
+                ],
+              ),
+              borderRadius: BorderRadius.circular(25),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.orange.withOpacity(0.4),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(isMediumScreen ? 10 : 14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.emoji_events,
+                        color: const Color(0xFFFF9800),
+                        size: isMediumScreen ? 28 : 35,
+                      ),
+                    ),
+                    SizedBox(width: isMediumScreen ? 12 : 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                'Nivel ',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: isMediumScreen ? 18 : 22,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  '${appProvider.level}',
+                                  style: TextStyle(
+                                    color: const Color(0xFFFF9800),
+                                    fontSize: isMediumScreen ? 18 : 22,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${appProvider.visitedPlaces.length} lugares visitados 📍',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: isMediumScreen ? 12 : 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: isMediumScreen ? 14 : 18),
+                Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Progreso al siguiente nivel',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: isMediumScreen ? 11 : 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Text(
+                          '${(progressValue * 100).toInt()}%',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: isMediumScreen ? 11 : 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Stack(
+                        children: [
+                          Container(
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          FractionallySizedBox(
+                            widthFactor: progressValue,
+                            child: Container(
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.white.withOpacity(0.5),
+                                    blurRadius: 8,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${appProvider.getPointsForNextLevel()} puntos restantes',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: isMediumScreen ? 10 : 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildQuickStats(
+      BuildContext context, bool isMediumScreen, bool isSmallScreen) {
+    final appProvider = Provider.of<AppProvider>(context);
+
+    return Row(
+      children: [
+        Expanded(
+          child: _buildStatCard(
+            '🎯',
+            'Logros',
+            '${appProvider.achievements.where((a) => a['unlocked'] == true).length}/${appProvider.achievements.length}',
+            const Color(0xFF9C27B0),
+            isMediumScreen,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildStatCard(
+            '🏆',
+            'Racha',
+            '${appProvider.level} días',
+            const Color(0xFFFF9800),
+            isMediumScreen,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildWelcomeCard(BuildContext context) {
-    final appProvider = Provider.of<AppProvider>(context);
-
+  Widget _buildStatCard(
+      String emoji, String label, String value, Color color, bool isSmall) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(isSmall ? 14 : 16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFFF9800), Color(0xFFFFB74D)],
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.3), width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.orange.withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
+            color: color.withOpacity(0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.emoji_events,
-                  color: Color(0xFFFF9800),
-                  size: 30,
-                ),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Nivel ${appProvider.level}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      '${appProvider.visitedPlaces.length} lugares visitados',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 15),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: (appProvider.points % 100) / 100,
-              backgroundColor: Colors.white30,
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-              minHeight: 8,
+          Text(emoji, style: TextStyle(fontSize: isSmall ? 24 : 28)),
+          SizedBox(height: isSmall ? 6 : 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: isSmall ? 11 : 12,
+              color: const Color(0xFF8D6E63),
+              fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 2),
           Text(
-            '${appProvider.getPointsForNextLevel()} puntos para el nivel ${appProvider.level + 1}',
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 12,
+            value,
+            style: TextStyle(
+              fontSize: isSmall ? 16 : 18,
+              fontWeight: FontWeight.bold,
+              color: color,
             ),
           ),
         ],
@@ -176,49 +437,77 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-        color: Color(0xFF5D4037),
-      ),
+  Widget _buildSectionTitle(String title, IconData icon, Color color) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF5D4037),
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildTouristPlaces(BuildContext context) {
+  Widget _buildTouristPlaces(
+      BuildContext context, bool isMediumScreen, bool isSmallScreen) {
     final places = [
       {
         'name': 'Parque La Venta',
         'icon': Icons.park,
         'color': const Color(0xFF4CAF50),
         'id': 'parque_venta',
+        'emoji': '🌳',
       },
       {
         'name': 'Yumká',
         'icon': Icons.nature,
         'color': const Color(0xFF8BC34A),
         'id': 'yumka',
+        'emoji': '🦁',
+      },
+      {
+        'name': 'Casa Universitaria del Agua',
+        'icon': Icons.water_drop,
+        'color': const Color(0xFF03A9F4),
+        'id': 'casa_agua',
+        'emoji': '💧',
       },
       {
         'name': 'Museo La Venta',
         'icon': Icons.museum,
         'color': const Color(0xFF009688),
         'id': 'museo_venta',
+        'emoji': '🗿',
       },
       {
-        'name': 'Laguna de las Ilusiones',
+        'name': 'Laguna Ilusiones',
         'icon': Icons.water,
         'color': const Color(0xFF00BCD4),
         'id': 'laguna_ilusiones',
+        'emoji': '💧',
       },
     ];
 
+    final cardWidth = isMediumScreen ? 130.0 : 145.0;
+
     return SizedBox(
-      height: 140,
+      height: isSmallScreen ? 160 : 180,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
         itemCount: places.length,
         itemBuilder: (context, index) {
           final place = places[index];
@@ -228,6 +517,9 @@ class HomeScreen extends StatelessWidget {
             place['icon'] as IconData,
             place['color'] as Color,
             place['id'] as String,
+            place['emoji'] as String,
+            cardWidth,
+            isMediumScreen,
           );
         },
       ),
@@ -240,80 +532,134 @@ class HomeScreen extends StatelessWidget {
     IconData icon,
     Color color,
     String placeId,
+    String emoji,
+    double cardWidth,
+    bool isSmall,
   ) {
     final appProvider = Provider.of<AppProvider>(context);
     final isVisited = appProvider.visitedPlaces.contains(placeId);
 
     return Container(
-      width: 130,
-      margin: const EdgeInsets.only(right: 15),
+      width: cardWidth,
+      margin: const EdgeInsets.only(right: 12),
       child: InkWell(
         onTap: () {
-          appProvider.visitPlace(placeId);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('¡Has visitado $name! +10 puntos'),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 2),
-            ),
-          );
+          if (!isVisited) {
+            appProvider.visitPlace(placeId);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Text('¡Visitado! '),
+                    Text(name,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const Text(' +10 puntos'),
+                  ],
+                ),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+              ),
+            );
+          }
         },
-        child: Container(
+        borderRadius: BorderRadius.circular(20),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(15),
+            gradient: isVisited
+                ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [color.withOpacity(0.2), color.withOpacity(0.1)],
+                  )
+                : const LinearGradient(
+                    colors: [Colors.white, Colors.white],
+                  ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isVisited ? color : Colors.grey.shade200,
+              width: isVisited ? 2 : 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
+                color: isVisited
+                    ? color.withOpacity(0.3)
+                    : Colors.black.withOpacity(0.08),
+                blurRadius: isVisited ? 15 : 10,
                 offset: const Offset(0, 4),
               ),
             ],
           ),
           child: Stack(
             children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(15),
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
-                      shape: BoxShape.circle,
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      emoji,
+                      style: TextStyle(fontSize: isSmall ? 40 : 45),
                     ),
-                    child: Icon(icon, color: color, size: 35),
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Text(
+                    SizedBox(height: isSmall ? 8 : 12),
+                    Text(
                       name,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF5D4037),
+                      style: TextStyle(
+                        fontSize: isSmall ? 12 : 13,
+                        fontWeight: FontWeight.bold,
+                        color: isVisited ? color : const Color(0xFF5D4037),
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
+                    if (isVisited) ...[
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Text(
+                          '✓ Visitado',
+                          style: TextStyle(
+                            fontSize: 9,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
               if (isVisited)
                 Positioned(
                   top: 8,
                   right: 8,
                   child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.green,
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: color,
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withOpacity(0.5),
+                          blurRadius: 8,
+                        ),
+                      ],
                     ),
                     child: const Icon(
                       Icons.check,
                       color: Colors.white,
-                      size: 16,
+                      size: 14,
                     ),
                   ),
                 ),
@@ -324,42 +670,47 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActivitiesGrid(BuildContext context) {
+  Widget _buildActivitiesGrid(
+      BuildContext context, bool isMediumScreen, bool isSmallScreen) {
     final activities = [
       {
         'name': 'Trivia',
         'icon': Icons.quiz,
         'color': const Color(0xFFE91E63),
         'description': 'Responde preguntas',
+        'emoji': '🤔',
       },
       {
         'name': 'Realidad Aumentada',
-        'icon': Icons.camera_alt,
+        'icon': Icons.view_in_ar,
         'color': const Color(0xFF9C27B0),
         'description': 'Escanea monumentos',
+        'emoji': '📱',
       },
       {
         'name': 'Mascotas',
         'icon': Icons.pets,
         'color': const Color(0xFF3F51B5),
         'description': 'Colecciona mascotas',
+        'emoji': '🐾',
       },
       {
         'name': 'Logros',
         'icon': Icons.emoji_events,
         'color': const Color(0xFFFF9800),
         'description': 'Desbloquea logros',
+        'emoji': '🏅',
       },
     ];
 
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        crossAxisSpacing: 15,
-        mainAxisSpacing: 15,
-        childAspectRatio: 1.2,
+        crossAxisSpacing: isSmallScreen ? 12 : 15,
+        mainAxisSpacing: isSmallScreen ? 12 : 15,
+        childAspectRatio: isMediumScreen ? 1.1 : 1.15,
       ),
       itemCount: activities.length,
       itemBuilder: (context, index) {
@@ -369,6 +720,8 @@ class HomeScreen extends StatelessWidget {
           activity['icon'] as IconData,
           activity['color'] as Color,
           activity['description'] as String,
+          activity['emoji'] as String,
+          isMediumScreen,
         );
       },
     );
@@ -379,49 +732,50 @@ class HomeScreen extends StatelessWidget {
     IconData icon,
     Color color,
     String description,
+    String emoji,
+    bool isSmall,
   ) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.2), width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 10,
+            color: color.withOpacity(0.15),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(15),
+        padding: EdgeInsets.all(isSmall ? 12 : 16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 30),
+            Text(
+              emoji,
+              style: TextStyle(fontSize: isSmall ? 32 : 36),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: isSmall ? 8 : 10),
             Text(
               name,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
+              style: TextStyle(
+                fontSize: isSmall ? 13 : 14,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF5D4037),
+                color: const Color(0xFF5D4037),
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: isSmall ? 3 : 4),
             Text(
               description,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 11,
-                color: Color(0xFF8D6E63),
+              style: TextStyle(
+                fontSize: isSmall ? 10 : 11,
+                color: const Color(0xFF8D6E63),
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
