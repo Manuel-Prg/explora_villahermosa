@@ -1,0 +1,69 @@
+name: explora_villahermosa
+description: "App de turismo para explorar Villahermosa"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.1.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # UI & State Management
+  cupertino_icons: ^1.0.8
+  provider: ^6.1.2
+  google_fonts: ^6.2.1
+
+  # Animations
+  lottie: ^3.1.2
+  
+  # AR Viewer
+  model_viewer_plus: ^1.7.2
+  
+  # Location & Maps (opcional - comenta si no usas)
+  geolocator: ^12.0.0
+  google_maps_flutter: ^2.6.1
+  
+  # Storage & Preferences
+  shared_preferences: ^2.2.3
+  path_provider: ^2.1.3
+  
+  # Permissions (opcional - comenta si no usas)
+  # permission_handler: ^11.3.1
+  
+  # Utils
+  url_launcher: ^6.2.6
+  webview_flutter: ^4.7.0
+  android_intent_plus: ^5.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_launcher_icons: ^0.13.1
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+   - assets/models/
+
+  # No incluir fuentes personalizadas si no existen
+  # fonts:
+  #   - family: CustomIcons
+  #     fonts:
+  #       - asset: assets/fonts/CustomIcons.ttf
+
+  # Assets opcionales para imágenes (si las necesitas)
+  # assets:
+  #   - assets/images/
+  #   - assets/icons/
+
+# Configuración de íconos de la app (opcional)
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/icon.png"
+  adaptive_icon_background: "#FFD54F"
+  adaptive_icon_foreground: "assets/icon/icon.png"
