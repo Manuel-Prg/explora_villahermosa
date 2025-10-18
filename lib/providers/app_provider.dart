@@ -23,8 +23,10 @@ class AppProvider extends ChangeNotifier {
 
   // Mascotas desbloqueadas
   final List<String> _unlockedPets = [
-    'iguana',
     'hicotea',
+    'iguana',
+    'mariposa',
+    'guacamaya',
     'coati',
     'cocodrilo',
     'pejelagarto',

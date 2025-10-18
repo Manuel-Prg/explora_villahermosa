@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import 'package:model_viewer_plus/model_viewer_plus.dart';
 import 'dart:math' as math;
 
 class PetsScreen extends StatefulWidget {
@@ -11,86 +12,111 @@ class PetsScreen extends StatefulWidget {
 }
 
 class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
+  // Controladores de animación
   late AnimationController _floatingController;
   late AnimationController _heartController;
   late AnimationController _rotateController;
   late AnimationController _pulseController;
+
+  // Animaciones
   late Animation<double> _floatingAnimation;
   late Animation<double> _rotateAnimation;
   late Animation<double> _pulseAnimation;
+
+  // Estados
   bool showHearts = false;
   bool showSparkles = false;
+  bool show3DViewer = false;
 
+  // Lista de mascotas
   final List<Map<String, dynamic>> pets = [
     {
       'id': 'iguana',
       'icon': Icons.park,
       'name': 'Iguana',
-      'color': const Color(0xFF8BC34A), // Verde claro
+      'color': const Color(0xFF8BC34A),
       'emoji': '🦎',
+      'model': 'assets/models/iguana.glb',
+      'hasModel': true, // ✅ TIENE MODELO
+      'animationName': null,
     },
     {
-      'id': 'hicotea',
-      'icon': Icons.water,
-      'name': 'Hicotea',
-      'color': const Color(0xFF795548), // Café
-      'emoji': '🐢',
+      'id': 'mariposa',
+      'icon': Icons.flutter_dash,
+      'name': 'Mariposa',
+      'color': const Color(0xFFFF9800),
+      'emoji': '🦋',
+      'model': 'assets/models/mariposa.glb',
+      'hasModel': true, // ✅ TIENE MODELO
+      'animationName': null,
     },
     {
-      'id': 'coati',
-      'icon': Icons.forest,
-      'name': 'Coatí',
-      'color': const Color(0xFFFF9800), // Naranja
-      'emoji': '🦝', // Emoji de mapache (el más parecido)
+      'id': 'guacamaya',
+      'icon': Icons.air,
+      'name': 'Guacamaya',
+      'color': const Color(0xFFFF5722),
+      'emoji': '🦜',
+      'model': 'assets/models/guacamaya.glb',
+      'hasModel': true, // ✅ TIENE MODELO
+      'animationName': null,
     },
     {
       'id': 'cocodrilo',
       'icon': Icons.water_drop,
       'name': 'Cocodrilo',
-      'color': const Color(0xFF4CAF50), // Verde oscuro
+      'color': const Color(0xFF4CAF50),
       'emoji': '🐊',
+      'hasModel': false,
     },
     {
       'id': 'pejelagarto',
       'icon': Icons.waves,
       'name': 'Pejelagarto',
-      'color': const Color(0xFF607D8B), // Gris azulado
+      'color': const Color(0xFF607D8B),
       'emoji': '🐟',
+      'hasModel': false,
     },
     {
       'id': 'jaguar',
       'icon': Icons.nightlight_round,
       'name': 'Jaguar',
-      'color': const Color(0xFFFFC107), // Ámbar/Dorado
+      'color': const Color(0xFFFFC107),
       'emoji': '🐆',
+      'hasModel': false,
     },
     {
       'id': 'pijije',
       'icon': Icons.air,
       'name': 'Pijije',
-      'color': const Color(0xFF00BCD4), // Cyan
+      'color': const Color(0xFF00BCD4),
       'emoji': '🦆',
+      'hasModel': false,
     },
     {
       'id': 'mono_arana',
       'icon': Icons.park,
       'name': 'Mono Araña',
-      'color': const Color(0xFFE65100), // Naranja oscuro
+      'color': const Color(0xFFE65100),
       'emoji': '🐒',
+      'hasModel': false,
     },
     {
       'id': 'manati',
       'icon': Icons.scuba_diving,
       'name': 'Manatí',
-      'color': const Color(0xFF4FC3F7), // Azul claro
-      'emoji': '🦭', // Emoji de foca (el más parecido)
+      'color': const Color(0xFF4FC3F7),
+      'emoji': '🦭',
+      'hasModel': false,
     },
   ];
 
   @override
   void initState() {
     super.initState();
+    _initializeAnimations();
+  }
 
+  void _initializeAnimations() {
     _floatingController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
@@ -138,6 +164,7 @@ class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
       showHearts = true;
       showSparkles = true;
     });
+
     _heartController.forward(from: 0);
     _rotateController.forward(from: 0);
 
@@ -167,12 +194,8 @@ class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
             _buildHeader(provider, screenWidth),
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  20,
-                  20,
-                  20,
-                  isSmallScreen ? 12 : 20,
-                ),
+                padding:
+                    EdgeInsets.fromLTRB(20, 20, 20, isSmallScreen ? 12 : 20),
                 child: Column(
                   children: [
                     _buildPetDisplay(provider, screenWidth, isSmallScreen),
@@ -261,22 +284,46 @@ class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
       AppProvider provider, double screenWidth, bool isSmallScreen) {
     final selectedPet = pets.firstWhere(
       (pet) => pet['id'] == provider.selectedPet,
-      orElse: () => pets.first, // <--- AÑADE ESTO
+      orElse: () => pets.first,
     );
 
     final displayHeight = isSmallScreen ? 300.0 : 350.0;
+    final hasModel = selectedPet['hasModel'] == true;
 
-    return GestureDetector(
-      onTap: () {
-        _triggerHappiness();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('¡Tu mascota está feliz! 💕'),
-            duration: Duration(seconds: 1),
-            behavior: SnackBarBehavior.floating,
+    return Stack(
+      children: [
+        // Vista 3D en pantalla completa
+        if (show3DViewer && hasModel)
+          SizedBox(
+            height: displayHeight,
+            child: _build3DViewer(selectedPet),
           ),
-        );
-      },
+
+        // Vista normal con emoji
+        if (!show3DViewer)
+          _buildEmojiView(
+              selectedPet, displayHeight, isSmallScreen, hasModel, provider),
+
+        // Botón flotante de cerrar (solo en modo 3D)
+        if (show3DViewer && hasModel)
+          Positioned(
+            top: 15,
+            right: 15,
+            child: _buildCloseButton(),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildEmojiView(
+    Map<String, dynamic> selectedPet,
+    double displayHeight,
+    bool isSmallScreen,
+    bool hasModel,
+    AppProvider provider,
+  ) {
+    return GestureDetector(
+      onTap: () => _handlePetTap(hasModel),
       child: Container(
         height: displayHeight,
         decoration: BoxDecoration(
@@ -300,228 +347,350 @@ class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
         ),
         child: Stack(
           children: [
-            // Decorative circles
-            Positioned(
-              top: -50,
-              right: -50,
-              child: Container(
-                width: 150,
-                height: 150,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.1),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: -30,
-              left: -30,
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.1),
-                ),
-              ),
-            ),
-
-            // Sparkles
+            ..._buildDecorativeCircles(),
             if (showSparkles) ..._buildSparkles(),
-
-            // Floating hearts animation
             if (showHearts) ..._buildFloatingHearts(),
+            _buildAnimatedPet(selectedPet, isSmallScreen, hasModel, provider),
+            _buildSoundButton(),
+            _buildTapIndicator(isSmallScreen, hasModel),
+          ],
+        ),
+      ),
+    );
+  }
 
-            // Pet with emoji and animations
-            Center(
-              child: AnimatedBuilder(
-                animation: Listenable.merge([
-                  _floatingAnimation,
-                  _rotateAnimation,
-                  _pulseAnimation,
-                ]),
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(0, _floatingAnimation.value),
-                    child: Transform.rotate(
-                      angle: _rotateAnimation.value,
-                      child: Transform.scale(
-                        scale: _pulseAnimation.value,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // Animated pet container
-                            Container(
-                              width: 200,
-                              height: 200,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color:
-                                        selectedPet['color'].withOpacity(0.3),
-                                    blurRadius: 30,
-                                    spreadRadius: 10,
-                                  ),
-                                ],
-                              ),
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  // Emoji grande
-                                  Text(
-                                    selectedPet['emoji'],
-                                    style: const TextStyle(fontSize: 120),
-                                  ),
-                                  // Ícono decorativo pequeño
-                                  Positioned(
-                                    bottom: 20,
-                                    right: 20,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: selectedPet['color'],
-                                        shape: BoxShape.circle,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: selectedPet['color']
-                                                .withOpacity(0.5),
-                                            blurRadius: 10,
-                                          ),
-                                        ],
-                                      ),
-                                      child: Icon(
-                                        selectedPet['icon'],
-                                        color: Colors.white,
-                                        size: 24,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(height: isSmallScreen ? 15 : 20),
-                            Text(
-                              provider.petName,
-                              style: TextStyle(
-                                fontSize: isSmallScreen ? 24 : 28,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                shadows: const [
-                                  Shadow(
-                                    color: Colors.black26,
-                                    offset: Offset(0, 2),
-                                    blurRadius: 4,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.9),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.stars,
-                                    color: selectedPet['color'],
-                                    size: 16,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'Nivel ${provider.petLevel}',
-                                    style: TextStyle(
-                                      fontSize: isSmallScreen ? 14 : 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: selectedPet['color'],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+  void _handlePetTap(bool hasModel) {
+    if (hasModel) {
+      setState(() => show3DViewer = true);
+    } else {
+      _triggerHappiness();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('¡Tu mascota está feliz! 💕'),
+          duration: Duration(seconds: 1),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  List<Widget> _buildDecorativeCircles() {
+    return [
+      Positioned(
+        top: -50,
+        right: -50,
+        child: Container(
+          width: 150,
+          height: 150,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white.withOpacity(0.1),
+          ),
+        ),
+      ),
+      Positioned(
+        bottom: -30,
+        left: -30,
+        child: Container(
+          width: 100,
+          height: 100,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white.withOpacity(0.1),
+          ),
+        ),
+      ),
+    ];
+  }
+
+  Widget _buildAnimatedPet(
+    Map<String, dynamic> selectedPet,
+    bool isSmallScreen,
+    bool hasModel,
+    AppProvider provider,
+  ) {
+    return Center(
+      child: AnimatedBuilder(
+        animation: Listenable.merge([
+          _floatingAnimation,
+          _rotateAnimation,
+          _pulseAnimation,
+        ]),
+        builder: (context, child) {
+          return Transform.translate(
+            offset: Offset(0, _floatingAnimation.value),
+            child: Transform.rotate(
+              angle: _rotateAnimation.value,
+              child: Transform.scale(
+                scale: _pulseAnimation.value,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildPetCircle(selectedPet, hasModel),
+                    SizedBox(height: isSmallScreen ? 15 : 20),
+                    Text(
+                      provider.petName,
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 24 : 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        shadows: const [
+                          Shadow(
+                            color: Colors.black26,
+                            offset: Offset(0, 2),
+                            blurRadius: 4,
+                          ),
+                        ],
                       ),
                     ),
-                  );
-                },
+                    const SizedBox(height: 4),
+                    _buildLevelBadge(selectedPet, provider, isSmallScreen),
+                  ],
+                ),
               ),
             ),
+          );
+        },
+      ),
+    );
+  }
 
-            // Sound button
+  Widget _buildPetCircle(Map<String, dynamic> selectedPet, bool hasModel) {
+    return Container(
+      width: 200,
+      height: 200,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: selectedPet['color'].withOpacity(0.3),
+            blurRadius: 30,
+            spreadRadius: 10,
+          ),
+        ],
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Text(
+            selectedPet['emoji'],
+            style: const TextStyle(fontSize: 120),
+          ),
+          if (hasModel)
             Positioned(
-              top: 15,
-              right: 15,
+              bottom: 20,
+              right: 20,
               child: Container(
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: selectedPet['color'],
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: selectedPet['color'].withOpacity(0.5),
                       blurRadius: 10,
                     ),
                   ],
                 ),
-                child: IconButton(
-                  icon: const Icon(Icons.volume_up, color: Color(0xFFFFB74D)),
-                  onPressed: _triggerHappiness,
+                child: const Icon(
+                  Icons.view_in_ar,
+                  color: Colors.white,
+                  size: 24,
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
 
-            // Tap indicator
-            Positioned(
-              bottom: 15,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 8,
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.touch_app,
-                        size: isSmallScreen ? 16 : 18,
-                        color: Colors.purple.shade400,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Toca a tu mascota',
-                        style: TextStyle(
-                          fontSize: isSmallScreen ? 11 : 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.purple.shade400,
-                        ),
-                      ),
-                    ],
-                  ),
+  Widget _buildLevelBadge(Map<String, dynamic> selectedPet,
+      AppProvider provider, bool isSmallScreen) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.stars,
+            color: selectedPet['color'],
+            size: 16,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            'Nivel ${provider.petLevel}',
+            style: TextStyle(
+              fontSize: isSmallScreen ? 14 : 16,
+              fontWeight: FontWeight.bold,
+              color: selectedPet['color'],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSoundButton() {
+    return Positioned(
+      top: 15,
+      right: 15,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+            ),
+          ],
+        ),
+        child: IconButton(
+          icon: const Icon(Icons.volume_up, color: Color(0xFFFFB74D)),
+          onPressed: _triggerHappiness,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTapIndicator(bool isSmallScreen, bool hasModel) {
+    return Positioned(
+      bottom: 15,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 8,
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                hasModel ? Icons.view_in_ar : Icons.touch_app,
+                size: isSmallScreen ? 16 : 18,
+                color: Colors.purple.shade400,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                hasModel ? 'Toca para ver en 3D' : 'Toca a tu mascota',
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 11 : 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.purple.shade400,
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _build3DViewer(Map<String, dynamic> pet) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: pet['color'].withOpacity(0.3),
+            blurRadius: 20,
+            spreadRadius: 5,
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: Stack(
+          children: [
+            ModelViewer(
+              backgroundColor: const Color(0xFF1A1A1A),
+              key: Key(pet['id']),
+              src: pet['model'],
+              alt: pet['name'],
+
+              // Configuración de animaciones
+              autoPlay: true,
+              animationName:
+                  null, // null = reproduce TODAS las animaciones del GLB
+
+              // Configuración de AR
+              ar: true,
+              arModes: const ['scene-viewer', 'webxr', 'quick-look'],
+
+              // Configuración de cámara
+              autoRotate:
+                  false, // Desactivar rotación automática para ver mejor la animación
+              cameraControls: true,
+              disableZoom: false,
+
+              // Configuración de carga
+              loading: Loading.eager,
+              reveal: Reveal.auto,
+
+              // Configuración visual
+              shadowIntensity: 1.0,
+              shadowSoftness: 0.8,
+              exposure: 1.0,
+
+              // Configuración de interacción
+              interactionPrompt: InteractionPrompt.auto,
+              interactionPromptThreshold: 3000,
+
+              // Configuración de escala y posición
+              cameraOrbit: 'auto auto auto', // Posición automática de cámara
+              fieldOfView: 'auto',
+
+              // Habilitar todas las animaciones
+              animationCrossfadeDuration: 300,
+            ),
+            // Indicador de carga
+            Center(
+              child: CircularProgressIndicator(
+                color: pet['color'],
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCloseButton() {
+    return GestureDetector(
+      onTap: () => setState(() => show3DViewer = false),
+      child: Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.red.shade600,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.red.withOpacity(0.5),
+              blurRadius: 15,
+              spreadRadius: 3,
+            ),
+          ],
+        ),
+        child: const Icon(
+          Icons.close,
+          size: 28,
+          color: Colors.white,
         ),
       ),
     );
@@ -625,23 +794,17 @@ class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () => _feedPet(provider),
-                  icon: Icon(
-                    Icons.restaurant_menu,
-                    size: isSmallScreen ? 18 : 20,
-                  ),
-                  label: Text(
-                    'Alimentar',
-                    style: TextStyle(fontSize: isSmallScreen ? 13 : 15),
-                  ),
+                  icon: Icon(Icons.restaurant_menu,
+                      size: isSmallScreen ? 18 : 20),
+                  label: Text('Alimentar',
+                      style: TextStyle(fontSize: isSmallScreen ? 13 : 15)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFFB74D),
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(
-                      vertical: isSmallScreen ? 12 : 15,
-                    ),
+                    padding:
+                        EdgeInsets.symmetric(vertical: isSmallScreen ? 12 : 15),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
+                        borderRadius: BorderRadius.circular(15)),
                     elevation: 5,
                   ),
                 ),
@@ -650,23 +813,17 @@ class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () => _playWithPet(provider),
-                  icon: Icon(
-                    Icons.sports_esports,
-                    size: isSmallScreen ? 18 : 20,
-                  ),
-                  label: Text(
-                    'Jugar',
-                    style: TextStyle(fontSize: isSmallScreen ? 13 : 15),
-                  ),
+                  icon:
+                      Icon(Icons.sports_esports, size: isSmallScreen ? 18 : 20),
+                  label: Text('Jugar',
+                      style: TextStyle(fontSize: isSmallScreen ? 13 : 15)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF66BB6A),
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(
-                      vertical: isSmallScreen ? 12 : 15,
-                    ),
+                    padding:
+                        EdgeInsets.symmetric(vertical: isSmallScreen ? 12 : 15),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
+                        borderRadius: BorderRadius.circular(15)),
                     elevation: 5,
                   ),
                 ),
@@ -787,18 +944,29 @@ class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
           ),
           SizedBox(height: isSmallScreen ? 12 : 15),
           Wrap(
-            alignment: WrapAlignment.spaceAround, // Alinea las tarjetas
-            spacing: 12.0, // Espacio horizontal entre tarjetas
-            runSpacing: 12.0, // Espacio vertical entre filas
+            alignment: WrapAlignment.spaceAround,
+            spacing: 12.0,
+            runSpacing: 12.0,
             children: pets.map((pet) {
               final isSelected = provider.selectedPet == pet['id'];
+              final hasModel = pet['hasModel'] == true;
+
               return GestureDetector(
                 onTap: () {
                   provider.selectPet(pet['id']);
                   _triggerHappiness();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Has seleccionado: ${pet['name']}'),
+                      content: Row(
+                        children: [
+                          Text('Has seleccionado: ${pet['name']}'),
+                          if (hasModel) ...[
+                            const SizedBox(width: 8),
+                            const Icon(Icons.view_in_ar,
+                                size: 16, color: Colors.white),
+                          ],
+                        ],
+                      ),
                       duration: const Duration(seconds: 1),
                       backgroundColor: pet['color'],
                       behavior: SnackBarBehavior.floating,
@@ -828,24 +996,53 @@ class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
                           ]
                         : [],
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  child: Stack(
                     children: [
-                      Text(
-                        pet['emoji'],
-                        style: TextStyle(fontSize: isSmallScreen ? 32 : 40),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            pet['emoji'],
+                            style: TextStyle(fontSize: isSmallScreen ? 32 : 40),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            pet['name'],
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 10 : 12,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.w500,
+                              color: isSelected
+                                  ? pet['color']
+                                  : Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 5),
-                      Text(
-                        pet['name'],
-                        style: TextStyle(
-                          fontSize: isSmallScreen ? 10 : 12,
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.w500,
-                          color:
-                              isSelected ? pet['color'] : Colors.grey.shade600,
+                      if (hasModel)
+                        Positioned(
+                          top: 6,
+                          right: 6,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: pet['color'],
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: pet['color'].withOpacity(0.5),
+                                  blurRadius: 6,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.view_in_ar,
+                              size: 14,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -886,17 +1083,11 @@ class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
   }
 
   void _showSuccessDialog(
-    String title,
-    String message,
-    IconData icon,
-    Color color,
-  ) {
+      String title, String message, IconData icon, Color color) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(25),
           child: Column(
@@ -961,9 +1152,7 @@ class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Icon(Icons.error_outline, size: 50, color: Colors.red),
         content: Text(
           message,

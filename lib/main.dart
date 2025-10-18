@@ -175,7 +175,7 @@ class _SplashScreenState extends State<SplashScreen>
                           ],
                         ),
                         child: Image.asset(
-                          'assets/logo/logo_sinFondo.png',
+                          'assets/logo/logo.jpg',
                           width: 140, // <-- Ajusta el tamaño de tu logo
                           fit: BoxFit.contain,
                         ),

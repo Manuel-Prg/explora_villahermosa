@@ -65,5 +65,5 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/logo/logo_sinFondo.png"
+  image_path: "assets/logo/logo.jpg"
   remove_alpha_ios: true
