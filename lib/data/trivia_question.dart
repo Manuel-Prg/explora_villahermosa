@@ -126,14 +126,14 @@ class TriviaQuestions {
       'category': 'Historia',
     },
     {
-      'question': '¿Qué gobernador tabasqueño fue presidente de México?',
+      'question': '¿Cuál de estos personajes fue gobernador de Tabasco?',
       'options': [
         'Tomás Garrido Canabal',
         'Andrés Manuel López Obrador',
         'Carlos Pellicer',
         'José María Pino Suárez'
       ],
-      'correct': 'Andrés Manuel López Obrador',
+      'correct': 'Tomás Garrido Canabal',
       'category': 'Historia',
     },
     {

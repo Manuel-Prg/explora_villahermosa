@@ -10,6 +10,44 @@ class TriviaScreen extends StatefulWidget {
   State<TriviaScreen> createState() => _TriviaScreenState();
 }
 
+class ResponsiveTrivia {
+  final double fontSize24;
+  final double fontSize20;
+  final double fontSize18;
+  final double fontSize16;
+  final double fontSize14;
+  final double fontSize12;
+  final double fontSize11;
+  final double fontSize10;
+  final double paddingH;
+  final double paddingV;
+  final double iconSize20;
+  final double iconSize24;
+  final double iconSize28;
+  final double borderRadius;
+  final double cardPadding;
+  final double optionPadding;
+
+  ResponsiveTrivia({
+    required this.fontSize24,
+    required this.fontSize20,
+    required this.fontSize18,
+    required this.fontSize16,
+    required this.fontSize14,
+    required this.fontSize12,
+    required this.fontSize11,
+    required this.fontSize10,
+    required this.paddingH,
+    required this.paddingV,
+    required this.iconSize20,
+    required this.iconSize24,
+    required this.iconSize28,
+    required this.borderRadius,
+    required this.cardPadding,
+    required this.optionPadding,
+  });
+}
+
 class _TriviaScreenState extends State<TriviaScreen> {
   int currentQuestion = 0;
   String? selectedAnswer;
@@ -21,8 +59,32 @@ class _TriviaScreenState extends State<TriviaScreen> {
   @override
   void initState() {
     super.initState();
-    // Obtener 10 preguntas aleatorias al iniciar
     questions = TriviaQuestions.getRandomQuestions(10);
+  }
+
+  ResponsiveTrivia _getResponsiveValues() {
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final isSmall = width < 360;
+
+    return ResponsiveTrivia(
+      fontSize24: isSmall ? 20 : 24,
+      fontSize20: isSmall ? 18 : 20,
+      fontSize18: isSmall ? 16 : 18,
+      fontSize16: isSmall ? 14 : 16,
+      fontSize14: isSmall ? 12 : 14,
+      fontSize12: isSmall ? 11 : 12,
+      fontSize11: isSmall ? 10 : 11,
+      fontSize10: isSmall ? 9 : 10,
+      paddingH: isSmall ? 14 : 20,
+      paddingV: isSmall ? 12 : 16,
+      iconSize20: isSmall ? 18 : 20,
+      iconSize24: isSmall ? 22 : 24,
+      iconSize28: isSmall ? 26 : 28,
+      borderRadius: isSmall ? 16 : 20,
+      cardPadding: isSmall ? 18 : 25,
+      optionPadding: isSmall ? 12 : 16,
+    );
   }
 
   void selectAnswer(String answer) {
@@ -58,6 +120,7 @@ class _TriviaScreenState extends State<TriviaScreen> {
 
   void _showCompletionDialog() {
     final percentage = (correctAnswers / questions.length * 100).round();
+    final responsive = _getResponsiveValues();
     String message;
     IconData icon;
     Color color;
@@ -81,68 +144,76 @@ class _TriviaScreenState extends State<TriviaScreen> {
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(responsive.borderRadius),
         ),
         title: Column(
           children: [
-            Icon(icon, size: 60, color: color),
-            const SizedBox(height: 10),
-            const Text(
+            Icon(icon, size: responsive.iconSize28 + 30, color: color),
+            SizedBox(height: responsive.paddingV),
+            Text(
               '¡Trivia Completada!',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: responsive.fontSize20,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: responsive.fontSize14),
               ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Correctas:', style: TextStyle(fontSize: 16)),
-                      Text(
-                        '$correctAnswers/${questions.length}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF4CAF50),
+              SizedBox(height: responsive.paddingV * 1.5),
+              Container(
+                padding: EdgeInsets.all(responsive.cardPadding),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius:
+                      BorderRadius.circular(responsive.borderRadius * 0.7),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Correctas:',
+                            style: TextStyle(fontSize: responsive.fontSize14)),
+                        Text(
+                          '$correctAnswers/${questions.length}',
+                          style: TextStyle(
+                            fontSize: responsive.fontSize14,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF4CAF50),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Puntuación:', style: TextStyle(fontSize: 16)),
-                      Text(
-                        '$percentage%',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFFFB74D),
+                      ],
+                    ),
+                    SizedBox(height: responsive.paddingV),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Puntuación:',
+                            style: TextStyle(fontSize: responsive.fontSize14)),
+                        Text(
+                          '$percentage%',
+                          style: TextStyle(
+                            fontSize: responsive.fontSize14,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFFFFB74D),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -154,13 +225,15 @@ class _TriviaScreenState extends State<TriviaScreen> {
                 showResult = false;
                 correctAnswers = 0;
                 totalAnswered = 0;
-                // Obtener nuevas preguntas aleatorias
                 questions = TriviaQuestions.getRandomQuestions(10);
               });
             },
-            child: const Text(
+            child: Text(
               'Jugar de Nuevo',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: responsive.fontSize14,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -177,38 +250,33 @@ class _TriviaScreenState extends State<TriviaScreen> {
   Widget build(BuildContext context) {
     final provider = Provider.of<AppProvider>(context);
     final question = questions[currentQuestion];
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    final responsive = _getResponsiveValues();
     final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
-
-    // Responsive padding
-    final horizontalPadding = screenWidth < 360 ? 16.0 : 20.0;
-    final isSmallScreen = screenHeight < 700;
 
     return Scaffold(
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
-            _buildHeader(provider, screenWidth),
+            _buildHeader(provider, responsive),
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(
-                  horizontalPadding,
-                  horizontalPadding,
-                  horizontalPadding,
-                  isSmallScreen ? 12 : horizontalPadding,
+                  responsive.paddingH,
+                  responsive.paddingH,
+                  responsive.paddingH,
+                  responsive.paddingV,
                 ),
                 child: Column(
                   children: [
-                    _buildQuestionCard(question, screenWidth, isSmallScreen),
-                    SizedBox(height: isSmallScreen ? 12 : 20),
-                    _buildProgressSection(screenWidth, isSmallScreen),
-                    SizedBox(height: isSmallScreen ? 12 : 20),
-                    _buildStatsCard(screenWidth, isSmallScreen),
-                    // Espaciado para botón de accesibilidad
+                    _buildQuestionCard(question, responsive),
+                    SizedBox(height: responsive.paddingV * 1.5),
+                    _buildProgressSection(responsive),
+                    SizedBox(height: responsive.paddingV * 1.5),
+                    _buildStatsCard(responsive),
                     SizedBox(
-                        height: bottomPadding > 0 ? bottomPadding + 16 : 80),
+                      height: bottomPadding > 0 ? bottomPadding + 12 : 60,
+                    ),
                   ],
                 ),
               ),
@@ -219,20 +287,18 @@ class _TriviaScreenState extends State<TriviaScreen> {
     );
   }
 
-  Widget _buildHeader(AppProvider provider, double screenWidth) {
-    final isSmallScreen = screenWidth < 360;
-
+  Widget _buildHeader(AppProvider provider, ResponsiveTrivia responsive) {
     return Container(
-      padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
+      padding: EdgeInsets.all(responsive.paddingV),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFFFFB74D), Color(0xFFFF9800)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(responsive.borderRadius),
+          bottomRight: Radius.circular(responsive.borderRadius),
         ),
         boxShadow: [
           BoxShadow(
@@ -252,27 +318,27 @@ class _TriviaScreenState extends State<TriviaScreen> {
                 Text(
                   'Trivia Histórica',
                   style: TextStyle(
-                    fontSize: isSmallScreen ? 20 : 24,
+                    fontSize: responsive.fontSize20,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: responsive.paddingV * 0.3),
                 Text(
                   'Demuestra tu conocimiento',
                   style: TextStyle(
-                    fontSize: isSmallScreen ? 11 : 12,
+                    fontSize: responsive.fontSize11,
                     color: Colors.white70,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: responsive.paddingH),
           Container(
             padding: EdgeInsets.symmetric(
-              horizontal: isSmallScreen ? 12 : 16,
-              vertical: isSmallScreen ? 6 : 8,
+              horizontal: responsive.paddingH * 0.8,
+              vertical: responsive.paddingV * 0.5,
             ),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
@@ -281,13 +347,16 @@ class _TriviaScreenState extends State<TriviaScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.stars,
-                    color: Colors.white, size: isSmallScreen ? 18 : 20),
-                const SizedBox(width: 6),
+                Icon(
+                  Icons.stars,
+                  color: Colors.white,
+                  size: responsive.iconSize20,
+                ),
+                SizedBox(width: responsive.paddingH * 0.3),
                 Text(
                   '${provider.points}',
                   style: TextStyle(
-                    fontSize: isSmallScreen ? 16 : 18,
+                    fontSize: responsive.fontSize16,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -302,14 +371,13 @@ class _TriviaScreenState extends State<TriviaScreen> {
 
   Widget _buildQuestionCard(
     Map<String, dynamic> question,
-    double screenWidth,
-    bool isSmallScreen,
+    ResponsiveTrivia responsive,
   ) {
     return Container(
-      padding: EdgeInsets.all(isSmallScreen ? 20 : 25),
+      padding: EdgeInsets.all(responsive.cardPadding),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(responsive.borderRadius),
         border: Border.all(color: const Color(0xFFFFB74D), width: 3),
         boxShadow: [
           BoxShadow(
@@ -321,16 +389,15 @@ class _TriviaScreenState extends State<TriviaScreen> {
       ),
       child: Column(
         children: [
-          // Header con número de pregunta y categoría
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: responsive.paddingH * 0.5,
+            runSpacing: responsive.paddingV * 0.5,
             alignment: WrapAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+                padding: EdgeInsets.symmetric(
+                  horizontal: responsive.paddingH,
+                  vertical: responsive.paddingV * 0.4,
                 ),
                 decoration: BoxDecoration(
                   color: const Color(0xFF4DD0E1),
@@ -341,14 +408,14 @@ class _TriviaScreenState extends State<TriviaScreen> {
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
-                    fontSize: isSmallScreen ? 11 : 12,
+                    fontSize: responsive.fontSize11,
                   ),
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
+                padding: EdgeInsets.symmetric(
+                  horizontal: responsive.paddingH * 0.7,
+                  vertical: responsive.paddingV * 0.3,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.purple.shade50,
@@ -360,13 +427,13 @@ class _TriviaScreenState extends State<TriviaScreen> {
                     Icon(
                       Icons.category,
                       color: Colors.purple.shade400,
-                      size: isSmallScreen ? 14 : 16,
+                      size: responsive.iconSize20,
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: responsive.paddingH * 0.3),
                     Text(
                       question['category'],
                       style: TextStyle(
-                        fontSize: isSmallScreen ? 10 : 11,
+                        fontSize: responsive.fontSize10,
                         color: Colors.purple.shade700,
                         fontWeight: FontWeight.bold,
                       ),
@@ -376,20 +443,20 @@ class _TriviaScreenState extends State<TriviaScreen> {
               ),
             ],
           ),
-          SizedBox(height: isSmallScreen ? 8 : 10),
+          SizedBox(height: responsive.paddingV),
           Row(
             children: [
               Icon(
                 Icons.monetization_on,
                 color: const Color(0xFFFFB74D),
-                size: isSmallScreen ? 16 : 18,
+                size: responsive.iconSize20,
               ),
-              const SizedBox(width: 4),
+              SizedBox(width: responsive.paddingH * 0.3),
               Flexible(
                 child: Text(
                   '+10 puntos por respuesta correcta',
                   style: TextStyle(
-                    fontSize: isSmallScreen ? 10 : 11,
+                    fontSize: responsive.fontSize10,
                     color: Colors.grey.shade600,
                     fontWeight: FontWeight.w500,
                   ),
@@ -397,25 +464,25 @@ class _TriviaScreenState extends State<TriviaScreen> {
               ),
             ],
           ),
-          SizedBox(height: isSmallScreen ? 20 : 25),
+          SizedBox(height: responsive.paddingV * 1.5),
           Text(
             question['question'],
             style: TextStyle(
-              fontSize: isSmallScreen ? 16 : 18,
+              fontSize: responsive.fontSize18,
               fontWeight: FontWeight.bold,
               color: const Color(0xFF5D4037),
               height: 1.4,
             ),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: isSmallScreen ? 20 : 25),
+          SizedBox(height: responsive.paddingV * 1.5),
           ...List.generate(
             question['options'].length,
             (index) => _buildOptionButton(
               question['options'][index],
               String.fromCharCode(65 + index),
               question['correct'],
-              isSmallScreen,
+              responsive,
             ),
           ),
         ],
@@ -427,7 +494,7 @@ class _TriviaScreenState extends State<TriviaScreen> {
     String option,
     String letter,
     String correctAnswer,
-    bool isSmallScreen,
+    ResponsiveTrivia responsive,
   ) {
     final isSelected = selectedAnswer == option;
     final isCorrect = option == correctAnswer;
@@ -452,13 +519,13 @@ class _TriviaScreenState extends State<TriviaScreen> {
     }
 
     return Container(
-      margin: EdgeInsets.only(bottom: isSmallScreen ? 10 : 12),
+      margin: EdgeInsets.only(bottom: responsive.paddingV * 0.8),
       child: InkWell(
         onTap: selectedAnswer == null ? () => selectAnswer(option) : null,
         borderRadius: BorderRadius.circular(12),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
-          padding: EdgeInsets.all(isSmallScreen ? 14 : 16),
+          padding: EdgeInsets.all(responsive.optionPadding),
           decoration: BoxDecoration(
             color: backgroundColor,
             borderRadius: BorderRadius.circular(12),
@@ -476,8 +543,8 @@ class _TriviaScreenState extends State<TriviaScreen> {
           child: Row(
             children: [
               Container(
-                width: isSmallScreen ? 28 : 32,
-                height: isSmallScreen ? 28 : 32,
+                width: responsive.fontSize20 + 8,
+                height: responsive.fontSize20 + 8,
                 decoration: BoxDecoration(
                   color: Colors.white
                       .withOpacity(showCorrect || showIncorrect ? 0.3 : 0.5),
@@ -489,16 +556,16 @@ class _TriviaScreenState extends State<TriviaScreen> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: textColor,
-                    fontSize: isSmallScreen ? 14 : 16,
+                    fontSize: responsive.fontSize16,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: responsive.paddingH),
               Expanded(
                 child: Text(
                   option,
                   style: TextStyle(
-                    fontSize: isSmallScreen ? 14 : 16,
+                    fontSize: responsive.fontSize14,
                     color: textColor,
                     fontWeight: FontWeight.w500,
                   ),
@@ -506,10 +573,10 @@ class _TriviaScreenState extends State<TriviaScreen> {
               ),
               if (showCorrect)
                 Icon(Icons.check_circle,
-                    color: Colors.white, size: isSmallScreen ? 24 : 28)
+                    color: Colors.white, size: responsive.iconSize24)
               else if (showIncorrect)
                 Icon(Icons.cancel,
-                    color: Colors.white, size: isSmallScreen ? 24 : 28),
+                    color: Colors.white, size: responsive.iconSize24),
             ],
           ),
         ),
@@ -517,14 +584,14 @@ class _TriviaScreenState extends State<TriviaScreen> {
     );
   }
 
-  Widget _buildProgressSection(double screenWidth, bool isSmallScreen) {
+  Widget _buildProgressSection(ResponsiveTrivia responsive) {
     final progress = _getCurrentProgress();
 
     return Container(
-      padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
+      padding: EdgeInsets.all(responsive.cardPadding),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(responsive.borderRadius),
         border: Border.all(color: const Color(0xFF4DD0E1), width: 2),
         boxShadow: [
           BoxShadow(
@@ -545,14 +612,14 @@ class _TriviaScreenState extends State<TriviaScreen> {
                     Icon(
                       Icons.trending_up,
                       color: const Color(0xFF4DD0E1),
-                      size: isSmallScreen ? 18 : 20,
+                      size: responsive.iconSize20,
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: responsive.paddingH * 0.5),
                     Flexible(
                       child: Text(
                         'Progreso de la Trivia',
                         style: TextStyle(
-                          fontSize: isSmallScreen ? 14 : 16,
+                          fontSize: responsive.fontSize14,
                           fontWeight: FontWeight.bold,
                           color: const Color(0xFF5D4037),
                         ),
@@ -564,14 +631,14 @@ class _TriviaScreenState extends State<TriviaScreen> {
               Text(
                 '${(progress * 100).round()}%',
                 style: TextStyle(
-                  fontSize: isSmallScreen ? 16 : 18,
+                  fontSize: responsive.fontSize16,
                   fontWeight: FontWeight.bold,
                   color: const Color(0xFF4DD0E1),
                 ),
               ),
             ],
           ),
-          SizedBox(height: isSmallScreen ? 10 : 12),
+          SizedBox(height: responsive.paddingV),
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: LinearProgressIndicator(
@@ -579,14 +646,14 @@ class _TriviaScreenState extends State<TriviaScreen> {
               backgroundColor: const Color(0xFF4DD0E1).withOpacity(0.2),
               valueColor:
                   const AlwaysStoppedAnimation<Color>(Color(0xFF4DD0E1)),
-              minHeight: isSmallScreen ? 10 : 12,
+              minHeight: responsive.paddingV,
             ),
           ),
-          SizedBox(height: isSmallScreen ? 8 : 10),
+          SizedBox(height: responsive.paddingV),
           Text(
             '${currentQuestion + 1} de ${questions.length} preguntas completadas',
             style: TextStyle(
-              fontSize: isSmallScreen ? 11 : 12,
+              fontSize: responsive.fontSize11,
               color: Colors.grey.shade600,
             ),
             textAlign: TextAlign.center,
@@ -596,18 +663,16 @@ class _TriviaScreenState extends State<TriviaScreen> {
     );
   }
 
-  Widget _buildStatsCard(double screenWidth, bool isSmallScreen) {
-    final isVerySmallScreen = screenWidth < 340;
-
+  Widget _buildStatsCard(ResponsiveTrivia responsive) {
     return Container(
-      padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
+      padding: EdgeInsets.all(responsive.cardPadding),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [Colors.purple.shade400, Colors.purple.shade600],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(responsive.borderRadius),
         boxShadow: [
           BoxShadow(
             color: Colors.purple.withOpacity(0.3),
@@ -624,13 +689,12 @@ class _TriviaScreenState extends State<TriviaScreen> {
               Icons.check_circle_outline,
               'Correctas',
               '$correctAnswers',
-              isSmallScreen,
-              isVerySmallScreen,
+              responsive,
             ),
           ),
           Container(
             width: 1,
-            height: isSmallScreen ? 35 : 40,
+            height: responsive.fontSize16 + 10,
             color: Colors.white.withOpacity(0.3),
           ),
           Flexible(
@@ -638,13 +702,12 @@ class _TriviaScreenState extends State<TriviaScreen> {
               Icons.quiz,
               'Respondidas',
               '$totalAnswered',
-              isSmallScreen,
-              isVerySmallScreen,
+              responsive,
             ),
           ),
           Container(
             width: 1,
-            height: isSmallScreen ? 35 : 40,
+            height: responsive.fontSize16 + 10,
             color: Colors.white.withOpacity(0.3),
           ),
           Flexible(
@@ -654,8 +717,7 @@ class _TriviaScreenState extends State<TriviaScreen> {
               totalAnswered > 0
                   ? '${(correctAnswers / totalAnswered * 100).round()}%'
                   : '0%',
-              isSmallScreen,
-              isVerySmallScreen,
+              responsive,
             ),
           ),
         ],
@@ -667,25 +729,26 @@ class _TriviaScreenState extends State<TriviaScreen> {
     IconData icon,
     String label,
     String value,
-    bool isSmallScreen,
-    bool isVerySmallScreen,
+    ResponsiveTrivia responsive,
   ) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: Colors.white, size: isSmallScreen ? 20 : 24),
-        const SizedBox(height: 4),
+        Icon(icon, color: Colors.white, size: responsive.iconSize24),
+        SizedBox(height: responsive.paddingV * 0.3),
         Text(
           value,
           style: TextStyle(
-            fontSize: isSmallScreen ? 16 : 20,
+            fontSize: responsive.fontSize16,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
+        SizedBox(height: responsive.paddingV * 0.2),
         Text(
           label,
           style: TextStyle(
-            fontSize: isVerySmallScreen ? 9 : (isSmallScreen ? 10 : 11),
+            fontSize: responsive.fontSize10,
             color: Colors.white.withOpacity(0.8),
           ),
           textAlign: TextAlign.center,
