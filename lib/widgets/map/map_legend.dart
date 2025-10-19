@@ -14,7 +14,6 @@ class MapLegend extends StatelessWidget {
     required this.onClose,
   });
 
-  // Obtiene el icono según la categoría
   IconData _getCategoryIcon(String category) {
     switch (category) {
       case 'Museo':
@@ -44,7 +43,6 @@ class MapLegend extends StatelessWidget {
     }
   }
 
-  // Obtiene el color según la categoría
   Color _getCategoryColor(String category) {
     switch (category) {
       case 'Museo':
@@ -96,7 +94,6 @@ class MapLegend extends StatelessWidget {
       child: SafeArea(
         child: Column(
           children: [
-            // Header
             Container(
               padding: EdgeInsets.all(spacing.subsection),
               decoration: BoxDecoration(
@@ -146,13 +143,10 @@ class MapLegend extends StatelessWidget {
                 ],
               ),
             ),
-
-            // Lista de categorías
             Expanded(
               child: ListView(
                 padding: EdgeInsets.all(spacing.subsection),
                 children: [
-                  // Opción "Todos"
                   _buildCategoryTile(
                     context: context,
                     category: null,
@@ -165,10 +159,7 @@ class MapLegend extends StatelessWidget {
                     spacing: spacing,
                     borderRadius: borderRadius,
                   ),
-
                   SizedBox(height: spacing.card),
-
-                  // Categorías individuales
                   ...categories.map((category) {
                     final sitesCount =
                         TouristSitesData.getSitesByCategory(category).length;
@@ -187,12 +178,10 @@ class MapLegend extends StatelessWidget {
                         borderRadius: borderRadius,
                       ),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),
-
-            // Footer con leyenda de colores
             Container(
               padding: EdgeInsets.all(spacing.subsection),
               decoration: BoxDecoration(
@@ -319,19 +308,30 @@ class MapLegend extends StatelessWidget {
                       deviceType,
                       FontSize.body,
                     ),
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade800,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                    color: isSelected ? color.shade700 : Colors.black87,
                   ),
                 ),
               ),
-              Text(
-                '$count lugares',
-                style: TextStyle(
-                  fontSize: ResponsiveUtils.getFontSize(
-                    deviceType,
-                    FontSize.caption,
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: spacing.card,
+                  vertical: spacing.card * 0.4,
+                ),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '$count',
+                  style: TextStyle(
+                    fontSize: ResponsiveUtils.getFontSize(
+                      deviceType,
+                      FontSize.caption,
+                    ),
+                    fontWeight: FontWeight.bold,
+                    color: color.shade700,
                   ),
-                  color: Colors.grey.shade600,
                 ),
               ),
             ],
@@ -343,5 +343,5 @@ class MapLegend extends StatelessWidget {
 }
 
 extension on Color {
-  Color get shade700 => this.withOpacity(0.7);
+  get shade700 => null;
 }

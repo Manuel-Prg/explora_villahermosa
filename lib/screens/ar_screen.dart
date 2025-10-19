@@ -70,13 +70,10 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  // Se eliminó la clase ResponsiveValues para usar cálculos dinámicos.
-
   void _showMonumentInfo(BuildContext context, Map<String, dynamic> monument) {
     final provider = Provider.of<AppProvider>(context, listen: false);
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // Tamaños de fuente dinámicos para el BottomSheet
     final titleFontSize = screenWidth * 0.06;
     final bodyFontSize = screenWidth * 0.04;
     final buttonFontSize = screenWidth * 0.04;
@@ -283,13 +280,38 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
     final monument = monuments[selectedModelIndex];
 
     return ModelViewer(
-      backgroundColor: Colors.grey[900]!,
       key: Key(monument['id']),
       src: monument['model'],
       alt: monument['name'],
+      // CONFIGURACIÓN PARA ANIMACIONES
+      backgroundColor: Colors.grey[900]!,
       ar: true,
+      arModes: const ['scene-viewer', 'webxr', 'quick-look'],
       autoRotate: true,
       cameraControls: true,
+
+      // ACTIVAR ANIMACIONES
+      autoPlay: true, // ← Reproduce automáticamente
+      animationName: null, // ← null reproduce la primera animación disponible
+      // animationName: 'Animation', // ← O especifica el nombre exacto
+
+      // CONFIGURACIÓN ADICIONAL
+      shadowIntensity: 1.0,
+      shadowSoftness: 1.0,
+      exposure: 1.0,
+
+      // INTERACCIÓN
+      interactionPrompt: InteractionPrompt.auto,
+      interactionPromptThreshold: 2000,
+
+      // CÁMARA
+      cameraOrbit: 'auto auto auto',
+      minCameraOrbit: 'auto auto 5%',
+      maxCameraOrbit: 'auto auto 100%',
+
+      // ROTACIÓN
+      autoRotateDelay: 0,
+      rotationPerSecond: '30deg',
     );
   }
 
@@ -317,8 +339,6 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
 
   Widget _buildHeader(double screenWidth) {
     final provider = Provider.of<AppProvider>(context);
-
-    // Tamaños de fuente dinámicos
     final titleFontSize = screenWidth * 0.055;
     final pointsFontSize = screenWidth * 0.04;
 
@@ -362,7 +382,6 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildInstructions(double screenWidth) {
-    // Tamaños dinámicos para las instrucciones
     final titleFontSize = screenWidth * 0.05;
     final bodyFontSize = screenWidth * 0.038;
 
@@ -457,12 +476,8 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
   Widget _buildMonumentsList() {
     final provider = Provider.of<AppProvider>(context);
     final size = MediaQuery.of(context).size;
-
-    // --- MEJORA RESPONSIVE ---
-    // Calculamos el tamaño de las tarjetas dinámicamente
-    final double cardHeight = size.height * 0.18; // 18% de la altura
-    final double cardWidth =
-        size.width / 4.5; // Mostrar ~4.5 tarjetas en pantalla
+    final double cardHeight = size.height * 0.18;
+    final double cardWidth = size.width / 4.5;
 
     return Container(
       height: cardHeight,
@@ -508,8 +523,7 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
                     children: [
                       Icon(
                         monument['icon'],
-                        size: cardHeight *
-                            0.25, // Icono proporcional a la tarjeta
+                        size: cardHeight * 0.25,
                         color: isSelected || isVisited
                             ? monument['color']
                             : Colors.grey,
@@ -538,7 +552,7 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
                     child: Text(
                       monument['name'],
                       style: TextStyle(
-                        fontSize: cardWidth * 0.1, // Fuente proporcional
+                        fontSize: cardWidth * 0.1,
                         fontWeight: FontWeight.w600,
                         color: isSelected || isVisited
                             ? const Color(0xFF5D4037)
@@ -562,7 +576,7 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
                         Icons.view_in_ar,
                         'Ver 3D',
                         true,
-                        cardWidth, // Pasar el ancho para el tamaño del botón
+                        cardWidth,
                       ),
                     )
                   else
@@ -576,7 +590,7 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
                         Icons.info_outline,
                         'Info',
                         false,
-                        cardWidth, // Pasar el ancho para el tamaño del botón
+                        cardWidth,
                       ),
                     ),
                 ],
@@ -593,9 +607,8 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
     IconData icon,
     String label,
     bool isPrimary,
-    double cardWidth, // Recibe el ancho de la tarjeta
+    double cardWidth,
   ) {
-    // El padding y el tamaño de la fuente ahora son proporcionales
     final double horizontalPadding = cardWidth * 0.1;
     final double verticalPadding = cardWidth * 0.05;
     final double fontSize = cardWidth * 0.09;
