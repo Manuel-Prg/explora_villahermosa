@@ -161,22 +161,21 @@ class _SplashScreenState extends State<SplashScreen>
                     child: Opacity(
                       opacity: _fadeAnimation.value,
                       child: Container(
-                        padding: const EdgeInsets.all(
-                            20), // Ajusta el padding si tu logo no es circular
+                        padding: const EdgeInsets.all(50),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.3),
-                              blurRadius: 30,
-                              spreadRadius: 10,
+                              blurRadius: 35,
+                              spreadRadius: 15,
                             ),
                           ],
                         ),
                         child: Image.asset(
                           'assets/logo/logo.jpg',
-                          width: 140, // <-- Ajusta el tamaño de tu logo
+                          width: 140,
                           fit: BoxFit.contain,
                         ),
                       ),

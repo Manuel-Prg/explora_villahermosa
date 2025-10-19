@@ -38,7 +38,7 @@ class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
       'emoji': '🦎',
       'model': 'assets/models/iguana.glb',
       'hasModel': true, // ✅ TIENE MODELO
-      'animationName': null,
+      'animationName': 'AmatureAction',
     },
     {
       'id': 'mariposa',
@@ -48,7 +48,7 @@ class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
       'emoji': '🦋',
       'model': 'assets/models/mariposa.glb',
       'hasModel': true, // ✅ TIENE MODELO
-      'animationName': null,
+      'animationName': '*',
     },
     {
       'id': 'guacamaya',
@@ -58,7 +58,7 @@ class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
       'emoji': '🦜',
       'model': 'assets/models/guacamaya.glb',
       'hasModel': true, // ✅ TIENE MODELO
-      'animationName': null,
+      'animationName': '*',
     },
     {
       'id': 'cocodrilo',
@@ -623,18 +623,18 @@ class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
               src: pet['model'],
               alt: pet['name'],
 
-              // Configuración de animaciones
+              // 🔧 CONFIGURACIÓN DE ANIMACIONES - CLAVE
               autoPlay: true,
-              animationName:
-                  null, // null = reproduce TODAS las animaciones del GLB
+              animationName: pet[
+                  'animationName'], // Usa el nombre específico o déjalo vacío
 
-              // Configuración de AR
+              // ✅ Agregar estas propiedades
               ar: true,
               arModes: const ['scene-viewer', 'webxr', 'quick-look'],
 
-              // Configuración de cámara
-              autoRotate:
-                  false, // Desactivar rotación automática para ver mejor la animación
+              // 🔧 CONFIGURACIÓN DE CÁMARA - MODIFICADA
+              autoRotate: true, // ⚠️ Cambiar a true ayuda con las animaciones
+              autoRotateDelay: 0, // ✅ Agregar: empieza a rotar inmediatamente
               cameraControls: true,
               disableZoom: false,
 
@@ -652,10 +652,10 @@ class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
               interactionPromptThreshold: 3000,
 
               // Configuración de escala y posición
-              cameraOrbit: 'auto auto auto', // Posición automática de cámara
+              cameraOrbit: 'auto auto auto',
               fieldOfView: 'auto',
 
-              // Habilitar todas las animaciones
+              // ✅ ANIMACIÓN EN LOOP
               animationCrossfadeDuration: 300,
             ),
             // Indicador de carga
