@@ -1,8 +1,15 @@
+import 'package:explora_villahermosa/data/tourist_istes_data.dart';
+import 'package:explora_villahermosa/widgets/map/custom_market.dart';
+import 'package:explora_villahermosa/widgets/map/map_control.dart';
+import 'package:explora_villahermosa/widgets/map/map_stas_overlay.dart';
+import 'package:explora_villahermosa/widgets/map/site_details_mdal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import '../utils/responsive_utils.dart';
+import '../widgets/map/map_legend.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -12,296 +19,306 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  // Centro del mapa ajustado a la Plaza de Armas
-  final LatLng _initialCenter = const LatLng(17.989, -92.948);
+  final MapController _mapController = MapController();
+  String? _selectedCategory;
+  bool _showLegend = false;
 
-  // LISTA ACTUALIZADA con los lugares de la imagen
-  final List<Map<String, dynamic>> touristSites = [
-    {
-      'id': 'palacio_gobierno',
-      'name': 'Palacio de Gobierno',
-      'description': 'Sede del poder ejecutivo estatal.',
-      'position': const LatLng(17.98790, -92.91951),
-      'reward': 30
-    },
-    {
-      'id': 'tribunal_justicia',
-      'name': 'Tribunal Superior de Justicia',
-      'description': 'Sede del poder judicial.',
-      'position': const LatLng(17.987391, -92.919755),
-      'reward': 20
-    },
-    {
-      'id': 'casa_azulejos',
-      'name': 'Casa de los Azulejos',
-      'description': 'Museo de Historia de Tabasco.',
-      'position': const LatLng(17.98842, -92.91841),
-      'reward': 30
-    },
-    {
-      'id': 'parque_juarez',
-      'name': 'Parque Juárez',
-      'description': 'Principal parque público del centro.',
-      'position': const LatLng(17.99109, -92.91751),
-      'reward': 20
-    },
-    {
-      'id': 'iglesia_concepcion',
-      'name': 'Iglesia de la Inmaculada Concepción',
-      'description': 'Conocida como "La Conchita".',
-      'position': const LatLng(17.98630, -92.91974),
-      'reward': 25
-    },
-    {
-      'id': 'casa_pellicer',
-      'name': 'Casa Carlos Pellicer Cámara',
-      'description': 'Casa museo del poeta.',
-      'position': const LatLng(17.99031, -92.91909),
-      'reward': 25
-    },
-    {
-      'id': 'biblioteca_Manuel_R',
-      'name': 'Biblioteca Manuel R. Mora',
-      'description': 'Biblioteca pública histórica.',
-      'position': const LatLng(17.98735, -92.91919),
-      'reward': 30
-    },
-    {
-      'id': 'biblioteca:José_E',
-      'name': 'Biblioteca José E. de Cárdenas',
-      'description': 'Biblioteca pública histórica.',
-      'position': const LatLng(17.98755, -92.91917),
-      'reward': 25
-    },
-    {
-      'id': 'centro_cultural',
-      'name': 'Centro Cultural Villahermosa',
-      'description': 'Espacio para las artes y la cultura.',
-      'position': const LatLng(17.99097, -92.91696),
-      'reward': 25
-    },
-    {
-      'id': 'ayuntamiento',
-      'name': 'Palacio Municipal (Ayuntamiento)',
-      'description': 'Oficinas del gobierno de Centro.',
-      'position': const LatLng(17.986994, -92.919476),
-      'reward': 20
-    },
-    {
-      'id': 'plaza_bicentenario',
-      'name': 'Plaza Bicentenario',
-      'description': 'Plaza conmemorativa con fuente.',
-      'position': const LatLng(17.98831, -92.91942),
-      'reward': 15
-    },
-    {
-      'id': 'casa_agua_ujat',
-      'name': 'Casa Universitaria del Agua UJAT',
-      'description': 'Museo interactivo sobre el agua.',
-      'position': const LatLng(17.99051, -92.92016),
-      'reward': 40
-    },
-    {
-      'id': 'calle_juarez',
-      'name': 'Calle Benito Juárez',
-      'description': 'Calle conmemorativa.',
-      'position': const LatLng(17.98848, -92.91858),
-      'reward': 10
-    },
-    {
-      'id': 'parque_morelos',
-      'name': 'Parque Morelos',
-      'description': 'Parque con áreas verdes y recreativas.',
-      'position': const LatLng(17.988914, -92.922353),
-      'reward': 40
-    },
-    {
-      'id': 'instituto_juarez',
-      'name': 'Instituto Juárez',
-      'description': 'Instituto educativo en el centro.',
-      'position': const LatLng(17.98889, -92.92111),
-      'reward': 25
-    },
-    {
-      'id': 'parque_pajaritos',
-      'name': 'Parque los Pajaritos',
-      'description': 'Parque popular en el centro.',
-      'position': const LatLng(17.99039, -92.91986),
-      'reward': 15
-    },
-    {
-      'id': 'parque_corregidora',
-      'name': 'Parque Corregidora',
-      'description': 'Parque con jardines y áreas recreativas.',
-      'position': const LatLng(17.98823, -92.91891),
-      'reward': 25
-    },
-    {
-      'id': 'museo_de_tabasco',
-      'name': 'Museo de Tabasco',
-      'description': 'Parque museo.',
-      'position': const LatLng(17.99077, -92.91730),
-      'reward': 30
-    },
-    {
-      'id': 'banco_de_mexico',
-      'name': 'Banco de México',
-      'description': 'Sede del banco central.',
-      'position': const LatLng(17.98855, -92.91833),
-      'reward': 25
-    },
-    {
-      'id': 'casa_josefina',
-      'name': 'Casa Josefina vicens',
-      'description': 'Casa histórica en el centro.',
-      'position': const LatLng(17.99415, -92.91463),
-      'reward': 15
-    },
-    {
-      'id': 'hotel_one_centro',
-      'name': 'Hotel One (Centro)',
-      'description': 'Hotel en la zona centro.',
-      'position': const LatLng(17.99126, -92.91822),
-      'reward': 10
-    },
-    {
-      'id': 'plaza_de_armas',
-      'name': 'Plaza de Armas',
-      'description': 'El corazón del centro histórico.',
-      'position': const LatLng(17.8789, -92.91948),
-      'reward': 20
-    },
-    {
-      'id': 'cine_sheba',
-      'name': 'Cine Sheba',
-      'description': 'Antiguo cine icónico de Villahermosa.',
-      'position': const LatLng(17.98795, -92.91752),
-      'reward': 10
-    },
-    {
-      'id': 'carcel_y_ayuntamiento',
-      'name': 'Cárcel y Ayuntamiento',
-      'description': 'Edificios históricos en el centro.',
-      'position': const LatLng(17.986844, -92.919186),
-      'reward': 15
-    },
-    {
-      'id': 'casa_piedra',
-      'name': 'Casa de Piedra',
-      'description': 'Casa histórica en el centro.',
-      'position': const LatLng(17.98709, -92.91986),
-      'reward': 15
-    },
-  ];
+  // Método para calcular el centro geográfico de todos los sitios
+  LatLng _calculateCenter() {
+    final sites = _getFilteredSites();
+    if (sites.isEmpty) return const LatLng(17.9890, -92.9190);
 
-  @override
-  Widget build(BuildContext context) {
-    final provider = Provider.of<AppProvider>(context);
+    double sumLat = 0;
+    double sumLng = 0;
 
-    // Convertimos tus sitios en Marcadores para el mapa
-    List<Marker> markers = touristSites.map((site) {
-      bool isVisited = provider.visitedPlaces.contains(site['id']);
+    for (var site in sites) {
+      final pos = site['position'] as LatLng;
+      sumLat += pos.latitude;
+      sumLng += pos.longitude;
+    }
+
+    return LatLng(
+      sumLat / sites.length,
+      sumLng / sites.length,
+    );
+  }
+
+  // Obtiene sitios filtrados por categoría
+  List<Map<String, dynamic>> _getFilteredSites() {
+    if (_selectedCategory == null) {
+      return TouristSitesData.sites;
+    }
+    return TouristSitesData.getSitesByCategory(_selectedCategory!);
+  }
+
+  // Construye la lista de marcadores
+  List<Marker> _buildMarkers(AppProvider provider) {
+    return _getFilteredSites().map((site) {
+      final isVisited = provider.visitedPlaces.contains(site['id']);
+
       return Marker(
         width: 100.0,
         height: 80.0,
         point: site['position'],
-        child: GestureDetector(
+        child: CustomMarker(
+          site: site,
+          isVisited: isVisited,
           onTap: () => _showSiteDetails(site),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.location_pin,
-                color: isVisited ? Colors.green.shade700 : Colors.red.shade700,
-                size: 40,
-                shadows: const [Shadow(color: Colors.black54, blurRadius: 5)],
-              ),
-              Flexible(
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: Text(
-                    site['name'],
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ),
       );
     }).toList();
+  }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mapa Turístico'),
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+  // Muestra los detalles del sitio turístico
+  void _showSiteDetails(Map<String, dynamic> site) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      body: FlutterMap(
-        options: MapOptions(
-          initialCenter: _initialCenter,
-          initialZoom: 16.5, // Aumenté el zoom para ver mejor el centro
-        ),
-        children: [
-          // 1. Capa base del mapa (viene de OpenStreetMap)
-          TileLayer(
-            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-            userAgentPackageName: 'com.explora_villahermosa.app',
-          ),
-
-          // 2. Capa de marcadores (nuestros puntos de interés)
-          MarkerLayer(markers: markers),
-        ],
+      isScrollControlled: true,
+      builder: (context) => SiteDetailsModal(
+        site: site,
+        onVisit: () {
+          setState(() {}); // Actualizar el mapa
+        },
       ),
     );
   }
 
-  // Puedes reusar tu función para mostrar detalles, con ligeros ajustes
-  void _showSiteDetails(Map<String, dynamic> site) {
-    final provider = Provider.of<AppProvider>(context, listen: false);
-    final isVisited = provider.visitedPlaces.contains(site['id']);
+  // Filtra por categoría
+  void _filterByCategory(String? category) {
+    setState(() {
+      _selectedCategory = category;
+    });
 
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(site['name'],
-                style:
-                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            Text(site['description']),
-            const SizedBox(height: 20),
-            if (!isVisited)
-              ElevatedButton.icon(
-                icon: const Icon(Icons.check),
-                label: Text('Marcar como Visitado (+${site['reward']} Puntos)'),
-                onPressed: () {
-                  provider.addPoints(site['reward']);
-                  provider.visitPlace(site['id']);
-                  Navigator.pop(context);
-                  setState(() {}); // Para redibujar el mapa con el nuevo estado
-                },
-              )
-            else
-              const Text('¡Ya has visitado este lugar!',
-                  style: TextStyle(
-                      color: Colors.green, fontWeight: FontWeight.bold)),
-          ],
-        ),
+    // Animar hacia el centro de los sitios filtrados
+    Future.delayed(const Duration(milliseconds: 300), () {
+      _mapController.move(_calculateCenter(), 15.5);
+    });
+  }
+
+  // Centrar en ubicación del usuario (placeholder)
+  void _centerOnUser() {
+    _mapController.move(const LatLng(17.9890, -92.9190), 16.0);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Centrado en tu ubicación'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+  }
+
+  // Mostrar todos los sitios
+  void _showAllSites() {
+    setState(() {
+      _selectedCategory = null;
+    });
+    _mapController.move(_calculateCenter(), 15.5);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = Provider.of<AppProvider>(context);
+    final deviceType = ResponsiveUtils.fromContext(context);
+    final spacing = ResponsiveUtils.getSpacing(deviceType);
+
+    return Scaffold(
+      body: Stack(
+        children: [
+          // Mapa
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: _calculateCenter(),
+              initialZoom: 15.5,
+              minZoom: 13.0,
+              maxZoom: 18.0,
+              interactionOptions: const InteractionOptions(
+                flags: InteractiveFlag.all,
+              ),
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.explora_villahermosa.app',
+              ),
+              MarkerLayer(
+                markers: _buildMarkers(provider),
+              ),
+            ],
+          ),
+
+          // Header con degradado
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.5),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: EdgeInsets.all(spacing.subsection),
+                  child: Row(
+                    children: [
+                      // Botón de retroceso
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back),
+                          onPressed: () => Navigator.pop(context),
+                          color: Colors.black87,
+                        ),
+                      ),
+
+                      SizedBox(width: spacing.card),
+
+                      // Título
+                      Expanded(
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: spacing.subsection,
+                            vertical: spacing.card,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.map,
+                                color: Colors.orange.shade700,
+                                size: ResponsiveUtils.getIconSize(
+                                  deviceType,
+                                  IconSizeType.medium,
+                                ),
+                              ),
+                              SizedBox(width: spacing.card),
+                              Expanded(
+                                child: Text(
+                                  _selectedCategory ?? 'Mapa Turístico',
+                                  style: TextStyle(
+                                    fontSize: ResponsiveUtils.getFontSize(
+                                      deviceType,
+                                      FontSize.body,
+                                    ),
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      SizedBox(width: spacing.card),
+
+                      // Botón de filtro/leyenda
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            _showLegend ? Icons.close : Icons.filter_list,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _showLegend = !_showLegend;
+                            });
+                          },
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Leyenda/Filtros (deslizable desde la derecha)
+          if (_showLegend)
+            Positioned(
+              top: 0,
+              right: 0,
+              bottom: 0,
+              child: MapLegend(
+                selectedCategory: _selectedCategory,
+                onCategorySelected: _filterByCategory,
+                onClose: () => setState(() => _showLegend = false),
+              ),
+            ),
+
+          // Controles del mapa (zoom, ubicación)
+          Positioned(
+            right: spacing.subsection,
+            bottom: spacing.section + 80,
+            child: MapControls(
+              onZoomIn: () => _mapController.move(
+                _mapController.camera.center,
+                _mapController.camera.zoom + 1,
+              ),
+              onZoomOut: () => _mapController.move(
+                _mapController.camera.center,
+                _mapController.camera.zoom - 1,
+              ),
+              onCenterUser: _centerOnUser,
+              onShowAll: _showAllSites,
+            ),
+          ),
+
+          // Estadísticas overlay
+          Positioned(
+            left: spacing.subsection,
+            bottom: spacing.subsection,
+            child: MapStatsOverlay(
+              totalSites: TouristSitesData.sites.length,
+              visitedSites: provider.visitedPlaces.length,
+              filteredSites: _getFilteredSites().length,
+              showFiltered: _selectedCategory != null,
+            ),
+          ),
+        ],
       ),
     );
   }
