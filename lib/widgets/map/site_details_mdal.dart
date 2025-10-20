@@ -326,7 +326,7 @@ class SiteDetailsModal extends StatelessWidget {
 }
 
 extension on Color {
-  Color get shade600 => this.withOpacity(0.6);
+  Color get shade600 => withOpacity(0.6);
 
-  Color get shade700 => this.withOpacity(0.7);
+  Color get shade700 => withOpacity(0.7);
 }
