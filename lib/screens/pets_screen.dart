@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
-import '../widgets/pets/pet_display_widget.dart';
-import '../widgets/pets/pet_stats_widget.dart';
+import '../widgets/pets/pet_display.dart';
+import '../widgets/pets/pet_stats.dart';
 import '../widgets/pets/pet_selector.dart';
-import '../widgets/pets/pets_header_widget.dart';
+import '../widgets/pets/pets_header.dart';
 import '../utils/responsive_utils.dart';
 
 class PetsScreen extends StatefulWidget {
@@ -283,7 +283,7 @@ class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
 
   void _feedPet(AppProvider provider) {
     if (provider.points >= 10) {
-      provider.feedPet(20);
+      provider.feedPet(20 as String);
       triggerHappiness();
       _showSuccessDialog(
         '¡Mascota alimentada!',

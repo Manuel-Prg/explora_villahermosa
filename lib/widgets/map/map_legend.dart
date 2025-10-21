@@ -1,4 +1,4 @@
-import 'package:explora_villahermosa/data/tourist_istes_data.dart';
+import 'package:explora_villahermosa/data/tourist_sites_data.dart';
 import 'package:flutter/material.dart';
 import '../../utils/responsive_utils.dart';
 

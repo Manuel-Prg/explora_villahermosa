@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
-import '../widgets/ar/ar_header_widget.dart';
-import '../widgets/ar/ar_3d_viewer_widget.dart';
-import '../widgets/ar/ar_instructions_widget.dart';
-import '../widgets/ar/ar_monuments_list_widget.dart';
-import '../widgets/ar/ar_colse_button_widget.dart';
+import '../widgets/ar/ar_header.dart';
+import '../widgets/ar/ar_3d_viewer.dart';
+import '../widgets/ar/ar_instructions.dart';
+import '../widgets/ar/ar_monuments_list.dart';
+import '../widgets/ar/ar_close_button.dart';
 import '../widgets/ar/monument_info_dialog.dart';
 import '../models/monument_model.dart';
 import '../utils/responsive_utils.dart';
@@ -115,8 +115,11 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
           if (showViewer)
             Positioned(
               right: 16,
-              bottom:
-                  _calculateCloseButtonPosition(screenHeight, bottomPadding),
+              bottom: _calculateCloseButtonPosition(
+                screenHeight,
+                bottomPadding,
+                deviceType,
+              ),
               child: ARCloseButtonWidget(onClose: _handleCloseViewer),
             ),
         ],
@@ -125,7 +128,7 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
   }
 
   double _calculateCloseButtonPosition(
-      double screenHeight, double bottomPadding) {
+      double screenHeight, double bottomPadding, DeviceType deviceType) {
     return (screenHeight * 0.18) + bottomPadding + 70;
   }
 

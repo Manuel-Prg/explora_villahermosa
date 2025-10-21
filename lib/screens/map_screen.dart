@@ -1,4 +1,4 @@
-import 'package:explora_villahermosa/data/tourist_istes_data.dart';
+import 'package:explora_villahermosa/data/tourist_sites_data.dart';
 import 'package:explora_villahermosa/widgets/map/custom_market.dart';
 import 'package:explora_villahermosa/widgets/map/map_control.dart';
 import 'package:explora_villahermosa/widgets/map/map_stas_overlay.dart';
