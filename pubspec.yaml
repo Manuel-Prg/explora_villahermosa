@@ -17,7 +17,7 @@ dependencies:
 
   # Animations
   lottie: ^3.1.2
-  
+
   # AR Viewer
   model_viewer_plus: ^1.7.2
   

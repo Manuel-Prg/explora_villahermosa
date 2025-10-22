@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/storage_service.dart';
 
 class AppProvider extends ChangeNotifier {
   // Puntos acumulados por el usuario
@@ -56,7 +57,7 @@ class AppProvider extends ChangeNotifier {
   int _petHappiness = 80;
   int get petHappiness => _petHappiness;
 
-  // 🛒 INVENTARIO DEL USUARIO
+  // Inventario del usuario
   final Map<String, int> _inventory = {
     'comida_basica': 3,
     'comida_premium': 1,
@@ -64,15 +65,82 @@ class AppProvider extends ChangeNotifier {
   };
   Map<String, int> get inventory => _inventory;
 
+  // Flag para saber si los datos ya se cargaron
+  bool _isLoaded = false;
+  bool get isLoaded => _isLoaded;
+
   // Estadísticas adicionales
   int get triviaProgress => _completedTrivias.length;
   int get sitesVisited => _visitedPlaces.length;
+
+  // 🔄 CARGAR DATOS AL INICIAR
+  Future<void> loadData() async {
+    try {
+      final data = await StorageService.loadAllData();
+
+      _points = data['points'] ?? 100;
+      _level = data['level'] ?? 1;
+
+      final inventory = data['inventory'] as Map<String, int>;
+      _inventory.clear();
+      _inventory.addAll(inventory);
+
+      _visitedPlaces.clear();
+      _visitedPlaces.addAll(data['visitedPlaces'] ?? []);
+
+      final trivias = data['completedTrivias'] as Map<String, bool>;
+      _completedTrivias.clear();
+      _completedTrivias.addAll(trivias);
+
+      final petData = data['petData'] as Map<String, dynamic>;
+      _petName = petData['name'] ?? 'Amigo';
+      _petLevel = petData['level'] ?? 1;
+      _petHunger = petData['hunger'] ?? 80;
+      _petHappiness = petData['happiness'] ?? 80;
+      _petExperience = petData['experience'] ?? 0;
+      _currentPet = petData['selected'] ?? 'iguana';
+
+      achievements = data['achievements'] ?? [];
+
+      _isLoaded = true;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error cargando datos: $e');
+      _isLoaded = true;
+      notifyListeners();
+    }
+  }
+
+  // 💾 GUARDAR DATOS
+  Future<void> saveData() async {
+    try {
+      await StorageService.saveAllData(
+        points: _points,
+        level: _level,
+        inventory: _inventory,
+        visitedPlaces: _visitedPlaces,
+        completedTrivias: _completedTrivias,
+        petData: {
+          'name': _petName,
+          'level': _petLevel,
+          'hunger': _petHunger,
+          'happiness': _petHappiness,
+          'experience': _petExperience,
+          'selected': _currentPet,
+        },
+        achievements: achievements,
+      );
+    } catch (e) {
+      debugPrint('Error guardando datos: $e');
+    }
+  }
 
   // Agregar puntos
   void addPoints(int amount) {
     _points += amount;
     _checkLevelUp();
     notifyListeners();
+    saveData(); // Auto-guardar
   }
 
   // Verificar si sube de nivel
@@ -90,6 +158,7 @@ class AppProvider extends ChangeNotifier {
       addPoints(10);
     }
     notifyListeners();
+    saveData();
   }
 
   // Visitar sitio (alias para compatibilidad)
@@ -102,6 +171,7 @@ class AppProvider extends ChangeNotifier {
     _completedTrivias[triviaId] = true;
     addPoints(score);
     notifyListeners();
+    saveData();
   }
 
   // Responder trivia (alias para compatibilidad)
@@ -116,6 +186,7 @@ class AppProvider extends ChangeNotifier {
     if (!_unlockedPets.contains(petId)) {
       _unlockedPets.add(petId);
       notifyListeners();
+      saveData();
     }
   }
 
@@ -124,6 +195,7 @@ class AppProvider extends ChangeNotifier {
     if (_unlockedPets.contains(petId)) {
       _currentPet = petId;
       notifyListeners();
+      saveData();
     }
   }
 
@@ -137,14 +209,12 @@ class AppProvider extends ChangeNotifier {
     return (_level * 100) - _points;
   }
 
-  // 🍖 ALIMENTAR MASCOTA (Ahora usa inventario)
+  // Alimentar mascota
   void feedPet(String foodType) {
     if (!hasItem(foodType)) return;
 
-    // Consumir el item
     useItem(foodType);
 
-    // Recuperar hambre según el tipo de comida
     int hungerRestore = 0;
     int happinessBonus = 0;
 
@@ -167,15 +237,15 @@ class AppProvider extends ChangeNotifier {
     _petHappiness = (_petHappiness + happinessBonus).clamp(0, 100);
 
     notifyListeners();
+    saveData();
   }
 
-  // 🎾 JUGAR CON MASCOTA (Ahora puede usar juguetes)
+  // Jugar con mascota
   void playWithPet({String? toyType}) {
     int expGain = 10;
     int happinessGain = 10;
     int hungerLoss = 15;
 
-    // Si usa un juguete, mejores bonificaciones
     if (toyType != null && hasItem(toyType)) {
       useItem(toyType);
 
@@ -203,6 +273,7 @@ class AppProvider extends ChangeNotifier {
     _petHunger = (_petHunger - hungerLoss).clamp(0, 100);
 
     notifyListeners();
+    saveData();
   }
 
   // Actualizar experiencia de la mascota
@@ -227,9 +298,8 @@ class AppProvider extends ChangeNotifier {
   void setPetName(String name) {
     _petName = name;
     notifyListeners();
+    saveData();
   }
-
-  // 🛒 SISTEMA DE TIENDA
 
   // Comprar item
   bool buyItem(String itemId, int price) {
@@ -238,6 +308,7 @@ class AppProvider extends ChangeNotifier {
     _points -= price;
     addItemToInventory(itemId, 1);
     notifyListeners();
+    saveData();
     return true;
   }
 
@@ -268,7 +339,7 @@ class AppProvider extends ChangeNotifier {
     return _inventory[itemId] ?? 0;
   }
 
-  // 💊 DAR MEDICINA (Nuevo)
+  // Dar medicina
   void giveMedicine(String medicineType) {
     if (!hasItem(medicineType)) return;
 
@@ -288,5 +359,6 @@ class AppProvider extends ChangeNotifier {
     }
 
     notifyListeners();
+    saveData();
   }
 }
