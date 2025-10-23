@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../services/storage_service.dart';
 import '../utils/page_transtition.dart';
-import 'home_screen.dart';
 import 'main_navegation.dart';
 import 'onboarding_screen.dart';
 
@@ -60,9 +59,13 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _loadDataAndNavigate() async {
     try {
+      debugPrint('🚀 Iniciando carga de splash...');
+
       // Cargar datos del usuario
       final provider = Provider.of<AppProvider>(context, listen: false);
       await provider.loadData();
+
+      debugPrint('✅ Datos cargados exitosamente');
 
       // Esperar mínimo 2.5 segundos para mostrar el splash
       await Future.delayed(const Duration(milliseconds: 2500));
@@ -71,27 +74,35 @@ class _SplashScreenState extends State<SplashScreen>
 
       // Verificar si es la primera vez
       final isFirstTime = await StorageService.isFirstLaunch();
+      debugPrint('📱 Primera vez: $isFirstTime');
+
+      if (!mounted) return;
 
       if (isFirstTime) {
+        debugPrint('➡️ Navegando a Onboarding');
         // Ir a onboarding
         Navigator.pushReplacement(
           context,
           FadePageRoute(page: const OnboardingScreen()),
         );
       } else {
-        // Ir directo al home
+        debugPrint('➡️ Navegando a MainNavigation');
+        // Ir directo a MainNavigationScreen (con bottom nav)
         Navigator.pushReplacement(
           context,
           FadePageRoute(page: const MainNavigationScreen()),
         );
       }
-    } catch (e) {
-      debugPrint('Error en splash: $e');
-      // En caso de error, ir al home de todos modos
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error en splash: $e');
+      debugPrint('Stack trace: $stackTrace');
+
+      // En caso de error, ir a MainNavigationScreen de todos modos
       if (mounted) {
+        debugPrint('⚠️ Navegando a MainNavigation por error');
         Navigator.pushReplacement(
           context,
-          FadePageRoute(page: const HomeScreen()),
+          FadePageRoute(page: const MainNavigationScreen()),
         );
       }
     }

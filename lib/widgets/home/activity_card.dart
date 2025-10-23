@@ -18,7 +18,9 @@ class ActivityCard extends StatelessWidget {
     final cardPadding = ResponsiveUtils.getCardPadding(deviceType);
     final emojiSize = deviceType == DeviceType.desktop
         ? 44.0
-        : (deviceType == DeviceType.tablet ? 40.0 : 36.0);
+        : (deviceType == DeviceType.tablet
+            ? 40.0
+            : 34.0); // Reducido de 36 a 34
     final nameSize = ResponsiveUtils.getFontSize(deviceType, FontSize.body);
     final descSize = ResponsiveUtils.getFontSize(deviceType, FontSize.caption);
 
@@ -39,36 +41,62 @@ class ActivityCard extends StatelessWidget {
         padding: EdgeInsets.all(cardPadding),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize:
+              MainAxisSize.min, // ✅ Importante: no forzar tamaño máximo
           children: [
-            Text(activity.emoji, style: TextStyle(fontSize: emojiSize)),
-            SizedBox(
-                height: deviceType == DeviceType.desktop
-                    ? 12
-                    : (deviceType == DeviceType.tablet ? 10 : 10)),
+            // Emoji
             Text(
-              activity.name,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: nameSize,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF5D4037),
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              activity.emoji,
+              style: TextStyle(fontSize: emojiSize),
             ),
+
+            // Espaciado flexible
             SizedBox(
-                height: deviceType == DeviceType.desktop
-                    ? 5
-                    : (deviceType == DeviceType.tablet ? 4 : 4)),
-            Text(
-              activity.description,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: descSize,
-                color: const Color(0xFF8D6E63),
+              height: deviceType == DeviceType.desktop
+                  ? 12
+                  : (deviceType == DeviceType.tablet
+                      ? 10
+                      : 8), // Reducido de 10 a 8
+            ),
+
+            // Nombre - Con Flexible para evitar overflow
+            Flexible(
+              child: Text(
+                activity.name,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: nameSize,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF5D4037),
+                  height: 1.1, // ✅ Reducir altura de línea
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+            ),
+
+            // Espaciado flexible
+            SizedBox(
+              height: deviceType == DeviceType.desktop
+                  ? 5
+                  : (deviceType == DeviceType.tablet
+                      ? 4
+                      : 3), // Reducido de 4 a 3
+            ),
+
+            // Descripción - Con Flexible para evitar overflow
+            Flexible(
+              child: Text(
+                activity.description,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: descSize,
+                  color: const Color(0xFF8D6E63),
+                  height: 1.2, // ✅ Reducir altura de línea
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),

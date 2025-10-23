@@ -57,6 +57,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('🎨 Renderizando MainNavigationScreen');
+    debugPrint('📍 CurrentIndex: $_currentIndex');
+
     return Scaffold(
       body: PageView(
         controller: _pageController,
@@ -76,6 +79,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
           ],
         ),
         child: SafeArea(
+          top: false, // ← IMPORTANTE: No aplicar padding arriba
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
             child: Row(

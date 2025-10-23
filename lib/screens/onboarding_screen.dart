@@ -1,7 +1,7 @@
-import 'package:explora_villahermosa/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import '../services/storage_service.dart';
 import '../utils/page_transtition.dart';
+import 'main_navegation.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -59,9 +59,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _finishOnboarding() async {
     await StorageService.setNotFirstLaunch();
     if (mounted) {
+      debugPrint('✅ Onboarding completado, navegando a MainNavigation');
       Navigator.pushReplacement(
         context,
-        FadePageRoute(page: const HomeScreen()),
+        FadePageRoute(page: const MainNavigationScreen()),
       );
     }
   }

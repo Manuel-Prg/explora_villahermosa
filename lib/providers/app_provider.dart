@@ -75,37 +75,83 @@ class AppProvider extends ChangeNotifier {
 
   // 🔄 CARGAR DATOS AL INICIAR
   Future<void> loadData() async {
+    debugPrint('🔄 AppProvider: Iniciando carga de datos...');
+
     try {
       final data = await StorageService.loadAllData();
+      debugPrint('📦 AppProvider: Datos recibidos del storage');
 
       _points = data['points'] ?? 100;
       _level = data['level'] ?? 1;
 
-      final inventory = data['inventory'] as Map<String, int>;
-      _inventory.clear();
-      _inventory.addAll(inventory);
+      // Cargar inventario de forma segura
+      final inventoryData = data['inventory'];
+      if (inventoryData is Map) {
+        _inventory.clear();
+        inventoryData.forEach((key, value) {
+          if (key is String && value is int) {
+            _inventory[key] = value;
+          }
+        });
+      }
 
+      // Si el inventario está vacío, agregar items iniciales
+      if (_inventory.isEmpty) {
+        _inventory['comida_basica'] = 3;
+        _inventory['comida_premium'] = 1;
+        _inventory['juguete_pelota'] = 2;
+        debugPrint('🎁 AppProvider: Inventario inicial agregado');
+      }
+
+      // Cargar lugares visitados
       _visitedPlaces.clear();
-      _visitedPlaces.addAll(data['visitedPlaces'] ?? []);
+      final visitedData = data['visitedPlaces'];
+      if (visitedData is List) {
+        _visitedPlaces.addAll(visitedData.cast<String>());
+      }
 
-      final trivias = data['completedTrivias'] as Map<String, bool>;
+      // Cargar trivias completadas
       _completedTrivias.clear();
-      _completedTrivias.addAll(trivias);
+      final triviasData = data['completedTrivias'];
+      if (triviasData is Map) {
+        triviasData.forEach((key, value) {
+          if (key is String && value is bool) {
+            _completedTrivias[key] = value;
+          }
+        });
+      }
 
-      final petData = data['petData'] as Map<String, dynamic>;
-      _petName = petData['name'] ?? 'Amigo';
-      _petLevel = petData['level'] ?? 1;
-      _petHunger = petData['hunger'] ?? 80;
-      _petHappiness = petData['happiness'] ?? 80;
-      _petExperience = petData['experience'] ?? 0;
-      _currentPet = petData['selected'] ?? 'iguana';
+      // Cargar datos de mascota
+      final petData = data['petData'];
+      if (petData is Map<String, dynamic>) {
+        _petName = petData['name'] ?? 'Amigo';
+        _petLevel = petData['level'] ?? 1;
+        _petHunger = petData['hunger'] ?? 80;
+        _petHappiness = petData['happiness'] ?? 80;
+        _petExperience = petData['experience'] ?? 0;
+        _currentPet = petData['selected'] ?? 'iguana';
+      }
 
-      achievements = data['achievements'] ?? [];
+      // Cargar logros
+      final achievementsData = data['achievements'];
+      if (achievementsData is List) {
+        achievements = achievementsData.cast<Map<String, dynamic>>();
+      }
 
       _isLoaded = true;
+
+      debugPrint('✅ AppProvider: Datos cargados correctamente');
+      debugPrint('   - Puntos: $_points');
+      debugPrint('   - Nivel: $_level');
+      debugPrint('   - Inventario: ${_inventory.length} items');
+      debugPrint('   - Mascota: $_petName ($_currentPet)');
+
       notifyListeners();
-    } catch (e) {
-      debugPrint('Error cargando datos: $e');
+    } catch (e, stackTrace) {
+      debugPrint('❌ AppProvider: Error cargando datos: $e');
+      debugPrint('Stack trace: $stackTrace');
+
+      // Inicializar con valores por defecto
       _isLoaded = true;
       notifyListeners();
     }
@@ -130,8 +176,9 @@ class AppProvider extends ChangeNotifier {
         },
         achievements: achievements,
       );
+      debugPrint('💾 AppProvider: Datos guardados');
     } catch (e) {
-      debugPrint('Error guardando datos: $e');
+      debugPrint('❌ AppProvider: Error guardando datos: $e');
     }
   }
 
@@ -140,7 +187,7 @@ class AppProvider extends ChangeNotifier {
     _points += amount;
     _checkLevelUp();
     notifyListeners();
-    saveData(); // Auto-guardar
+    saveData();
   }
 
   // Verificar si sube de nivel
