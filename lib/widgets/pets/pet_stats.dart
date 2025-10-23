@@ -312,7 +312,7 @@ class PetStatsWidget extends StatelessWidget {
                   );
                 },
               );
-            }).toList(),
+            }),
           ],
         ),
       ),
@@ -409,7 +409,7 @@ class PetStatsWidget extends StatelessWidget {
                     );
                   },
                 );
-              }).toList(),
+              }),
           ],
         ),
       ),

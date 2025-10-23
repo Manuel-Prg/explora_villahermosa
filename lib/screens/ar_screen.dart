@@ -87,7 +87,7 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
             bottom: false,
             child: Column(
               children: [
-                ARHeaderWidget(),
+                const ARHeaderWidget(),
                 Expanded(
                   child: !showViewer
                       ? Center(

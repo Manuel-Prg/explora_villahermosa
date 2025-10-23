@@ -29,6 +29,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _currentIndex);
+
+    // Debug: Verificar que llegamos aquí
+    debugPrint('✅ MainNavigationScreen iniciado correctamente');
+    debugPrint('📱 Pantallas cargadas: ${_screens.length}');
   }
 
   @override

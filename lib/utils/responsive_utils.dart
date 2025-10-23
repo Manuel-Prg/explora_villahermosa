@@ -20,7 +20,6 @@ class ResponsiveSpacing {
 }
 
 class ResponsiveUtils {
-  // Detecta el tipo de dispositivo
   static DeviceType getDeviceType(double width) {
     if (width < 600) {
       return DeviceType.mobile;
@@ -31,7 +30,6 @@ class ResponsiveUtils {
     }
   }
 
-  // Obtiene el ancho máximo del contenido
   static double getMaxContentWidth(DeviceType deviceType) {
     switch (deviceType) {
       case DeviceType.mobile:
@@ -43,7 +41,6 @@ class ResponsiveUtils {
     }
   }
 
-  // Obtiene el padding de la pantalla
   static EdgeInsets getScreenPadding(DeviceType deviceType) {
     switch (deviceType) {
       case DeviceType.mobile:
@@ -55,7 +52,6 @@ class ResponsiveUtils {
     }
   }
 
-  // Obtiene los espaciados
   static ResponsiveSpacing getSpacing(DeviceType deviceType) {
     switch (deviceType) {
       case DeviceType.mobile:
@@ -79,7 +75,6 @@ class ResponsiveUtils {
     }
   }
 
-  // Obtiene tamaños de fuente
   static double getFontSize(DeviceType deviceType, FontSize size) {
     switch (size) {
       case FontSize.title:
@@ -105,7 +100,6 @@ class ResponsiveUtils {
     }
   }
 
-  // Obtiene el tamaño de iconos
   static double getIconSize(DeviceType deviceType, IconSizeType type) {
     switch (type) {
       case IconSizeType.small:
@@ -123,7 +117,6 @@ class ResponsiveUtils {
     }
   }
 
-  // Obtiene el padding de tarjetas
   static double getCardPadding(DeviceType deviceType) {
     switch (deviceType) {
       case DeviceType.mobile:
@@ -135,7 +128,6 @@ class ResponsiveUtils {
     }
   }
 
-  // Obtiene el número de columnas para grids
   static int getGridColumns(DeviceType deviceType) {
     switch (deviceType) {
       case DeviceType.mobile:
@@ -147,7 +139,6 @@ class ResponsiveUtils {
     }
   }
 
-  // Obtiene el border radius
   static double getBorderRadius(DeviceType deviceType) {
     switch (deviceType) {
       case DeviceType.mobile:
@@ -159,7 +150,6 @@ class ResponsiveUtils {
     }
   }
 
-  // Helper method para uso más fácil desde BuildContext
   static DeviceType fromContext(BuildContext context) {
     return getDeviceType(MediaQuery.of(context).size.width);
   }

@@ -1,10 +1,10 @@
-import 'package:explora_villahermosa/screens/home_screen.dart';
-import 'package:explora_villahermosa/screens/main_navegation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../services/storage_service.dart';
 import '../utils/page_transtition.dart';
+import 'home_screen.dart';
+import 'main_navegation.dart';
 import 'onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {

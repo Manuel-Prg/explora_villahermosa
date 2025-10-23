@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// ⏳ Loading Indicator Profesional
 class LoadingIndicator extends StatelessWidget {
   final String? message;
   final Color? color;
@@ -62,7 +61,6 @@ class LoadingIndicator extends StatelessWidget {
   }
 }
 
-// 🔄 Loading Overlay (para mostrar sobre contenido)
 class LoadingOverlay extends StatelessWidget {
   final bool isLoading;
   final Widget child;
@@ -93,7 +91,6 @@ class LoadingOverlay extends StatelessWidget {
   }
 }
 
-// ❌ Error Widget Profesional
 class CustomErrorWidget extends StatelessWidget {
   final String message;
   final String? title;
@@ -194,7 +191,6 @@ class CustomErrorWidget extends StatelessWidget {
   }
 }
 
-// 📭 Empty State Widget
 class EmptyStateWidget extends StatelessWidget {
   final String message;
   final String? title;
@@ -292,7 +288,6 @@ class EmptyStateWidget extends StatelessWidget {
   }
 }
 
-// 💬 Info Message Widget
 class InfoMessageWidget extends StatelessWidget {
   final String message;
   final IconData icon;
@@ -342,7 +337,6 @@ class InfoMessageWidget extends StatelessWidget {
   }
 }
 
-// 🎯 Shimmer Loading Effect
 class ShimmerLoading extends StatefulWidget {
   final double width;
   final double height;

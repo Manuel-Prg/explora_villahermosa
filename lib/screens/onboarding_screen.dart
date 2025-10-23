@@ -72,10 +72,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Skip button
             _buildSkipButton(),
-
-            // Pages
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -86,15 +83,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 },
               ),
             ),
-
-            // Indicators
             _buildIndicators(),
-
             const SizedBox(height: 20),
-
-            // Buttons
             _buildButtons(),
-
             const SizedBox(height: 30),
           ],
         ),
@@ -136,7 +127,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Icon/Animation
           TweenAnimationBuilder<double>(
             duration: const Duration(milliseconds: 800),
             tween: Tween(begin: 0.0, end: 1.0),
@@ -172,10 +162,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
           ),
-
           const SizedBox(height: 60),
-
-          // Title
           TweenAnimationBuilder<double>(
             duration: const Duration(milliseconds: 600),
             tween: Tween(begin: 0.0, end: 1.0),
@@ -200,10 +187,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               textAlign: TextAlign.center,
             ),
           ),
-
           const SizedBox(height: 20),
-
-          // Description
           TweenAnimationBuilder<double>(
             duration: const Duration(milliseconds: 800),
             tween: Tween(begin: 0.0, end: 1.0),
@@ -264,7 +248,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Back button
           if (_currentPage > 0)
             TextButton(
               onPressed: () {
@@ -300,8 +283,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             )
           else
             const SizedBox(width: 100),
-
-          // Next/Start button
           ElevatedButton(
             onPressed: () {
               if (isLastPage) {

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// Transición de Fade
 class FadePageRoute<T> extends PageRouteBuilder<T> {
   final Widget page;
   final Duration duration;
@@ -20,7 +19,6 @@ class FadePageRoute<T> extends PageRouteBuilder<T> {
         );
 }
 
-// Transición de Slide desde la derecha
 class SlideRightPageRoute<T> extends PageRouteBuilder<T> {
   final Widget page;
   final Duration duration;
@@ -48,7 +46,6 @@ class SlideRightPageRoute<T> extends PageRouteBuilder<T> {
         );
 }
 
-// Transición de Slide desde abajo
 class SlideUpPageRoute<T> extends PageRouteBuilder<T> {
   final Widget page;
   final Duration duration;
@@ -76,7 +73,6 @@ class SlideUpPageRoute<T> extends PageRouteBuilder<T> {
         );
 }
 
-// Transición de Scale (zoom)
 class ScalePageRoute<T> extends PageRouteBuilder<T> {
   final Widget page;
   final Duration duration;
@@ -109,7 +105,6 @@ class ScalePageRoute<T> extends PageRouteBuilder<T> {
         );
 }
 
-// Transición de Rotation + Scale
 class RotationScalePageRoute<T> extends PageRouteBuilder<T> {
   final Widget page;
   final Duration duration;
@@ -142,7 +137,6 @@ class RotationScalePageRoute<T> extends PageRouteBuilder<T> {
         );
 }
 
-// Transición combinada Slide + Fade
 class SlideFadePageRoute<T> extends PageRouteBuilder<T> {
   final Widget page;
   final Duration duration;
@@ -178,9 +172,7 @@ class SlideFadePageRoute<T> extends PageRouteBuilder<T> {
         );
 }
 
-// Extensión para facilitar el uso
 extension NavigatorExtensions on BuildContext {
-  // Navegación con fade
   Future<T?> pushFade<T>(Widget page) {
     return Navigator.push<T>(
       this,
@@ -188,7 +180,6 @@ extension NavigatorExtensions on BuildContext {
     );
   }
 
-  // Navegación con slide desde la derecha
   Future<T?> pushSlideRight<T>(Widget page) {
     return Navigator.push<T>(
       this,
@@ -196,7 +187,6 @@ extension NavigatorExtensions on BuildContext {
     );
   }
 
-  // Navegación con slide desde abajo
   Future<T?> pushSlideUp<T>(Widget page) {
     return Navigator.push<T>(
       this,
@@ -204,7 +194,6 @@ extension NavigatorExtensions on BuildContext {
     );
   }
 
-  // Navegación con scale
   Future<T?> pushScale<T>(Widget page) {
     return Navigator.push<T>(
       this,
@@ -212,7 +201,6 @@ extension NavigatorExtensions on BuildContext {
     );
   }
 
-  // Navegación con slide + fade
   Future<T?> pushSlideFade<T>(Widget page) {
     return Navigator.push<T>(
       this,
@@ -220,7 +208,6 @@ extension NavigatorExtensions on BuildContext {
     );
   }
 
-  // Reemplazar con fade
   Future<T?> replaceFade<T>(Widget page) {
     return Navigator.pushReplacement<T, void>(
       this,
