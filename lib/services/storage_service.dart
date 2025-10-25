@@ -4,7 +4,7 @@ import 'dart:convert';
 
 class StorageService {
   // Keys para almacenar datos
-  static const String _profileKey = 'user_profile'; // 🆕 Nuevo
+  static const String _profileKey = 'user_profile';
   static const String _pointsKey = 'user_points';
   static const String _levelKey = 'user_level';
   static const String _inventoryKey = 'user_inventory';
@@ -14,21 +14,89 @@ class StorageService {
   static const String _achievementsKey = 'achievements';
   static const String _firstLaunchKey = 'first_launch';
 
-  // Verificar si es la primera vez que se abre la app
-  static Future<bool> isFirstLaunch() async {
+  // ============================================
+  // 🆕 MÉTODOS MODULARES PARA CADA PROVIDER
+  // ============================================
+
+  // 👤 USER PROVIDER - Guardar y cargar datos de usuario
+  static Future<void> saveUserData({
+    Map<String, dynamic>? profile,
+    required int points,
+    required int level,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_firstLaunchKey) ?? true;
+    final tasks = [
+      prefs.setInt(_pointsKey, points),
+      prefs.setInt(_levelKey, level),
+    ];
+    if (profile != null) {
+      tasks.add(prefs.setString(_profileKey, jsonEncode(profile)));
+    }
+    await Future.wait(tasks);
   }
 
-  // Marcar como no primera vez
-  static Future<void> setNotFirstLaunch() async {
+  static Future<Map<String, dynamic>> loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_firstLaunchKey, false);
+    return {
+      'profile': _parseProfile(prefs.getString(_profileKey)),
+      'points': prefs.getInt(_pointsKey) ?? 100,
+      'level': prefs.getInt(_levelKey) ?? 1,
+    };
   }
 
-  // 💾 Guardar todos los datos del usuario
+  // 🐾 PET PROVIDER - Guardar y cargar datos de mascota
+  static Future<void> savePetData(Map<String, dynamic> petData) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_petDataKey, jsonEncode(petData));
+  }
+
+  static Future<Map<String, dynamic>> loadPetData() async {
+    final prefs = await SharedPreferences.getInstance();
+    return _parsePetData(prefs.getString(_petDataKey));
+  }
+
+  // 🎒 INVENTORY PROVIDER - Guardar y cargar inventario
+  static Future<void> saveInventoryData(Map<String, int> inventory) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_inventoryKey, jsonEncode(inventory));
+  }
+
+  static Future<Map<String, int>> loadInventoryData() async {
+    final prefs = await SharedPreferences.getInstance();
+    return _parseInventory(prefs.getString(_inventoryKey));
+  }
+
+  // 📍 GAME PROGRESS PROVIDER - Guardar y cargar progreso
+  static Future<void> saveGameProgressData({
+    required List<String> visitedPlaces,
+    required Map<String, bool> completedTrivias,
+    required List<Map<String, dynamic>> achievements,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    await Future.wait([
+      prefs.setStringList(_visitedPlacesKey, visitedPlaces),
+      prefs.setString(_completedTriviasKey, jsonEncode(completedTrivias)),
+      prefs.setString(_achievementsKey, jsonEncode(achievements)),
+    ]);
+  }
+
+  static Future<Map<String, dynamic>> loadGameProgressData() async {
+    final prefs = await SharedPreferences.getInstance();
+    return {
+      'visitedPlaces': prefs.getStringList(_visitedPlacesKey) ?? [],
+      'completedTrivias':
+          _parseCompletedTrivias(prefs.getString(_completedTriviasKey)),
+      'achievements': _parseAchievements(prefs.getString(_achievementsKey)),
+    };
+  }
+
+  // ============================================
+  // 🔄 MÉTODO LEGACY (para compatibilidad durante migración)
+  // ============================================
+
+  /// Guardar todos los datos (mantener para compatibilidad)
   static Future<void> saveAllData({
-    Map<String, dynamic>? profile, // 🆕 Nuevo parámetro
+    Map<String, dynamic>? profile,
     required int points,
     required int level,
     required Map<String, int> inventory,
@@ -49,7 +117,6 @@ class StorageService {
       prefs.setString(_achievementsKey, jsonEncode(achievements)),
     ];
 
-    // 🆕 Guardar perfil si existe
     if (profile != null) {
       saveTasks.add(prefs.setString(_profileKey, jsonEncode(profile)));
     }
@@ -57,12 +124,12 @@ class StorageService {
     await Future.wait(saveTasks);
   }
 
-  // 📦 Cargar todos los datos del usuario
+  /// Cargar todos los datos (mantener para compatibilidad)
   static Future<Map<String, dynamic>> loadAllData() async {
     final prefs = await SharedPreferences.getInstance();
 
     return {
-      'profile': _parseProfile(prefs.getString(_profileKey)), // 🆕 Nuevo
+      'profile': _parseProfile(prefs.getString(_profileKey)),
       'points': prefs.getInt(_pointsKey) ?? 100,
       'level': prefs.getInt(_levelKey) ?? 1,
       'inventory': _parseInventory(prefs.getString(_inventoryKey)),
@@ -74,7 +141,10 @@ class StorageService {
     };
   }
 
-  // 🆕 Parser para el perfil
+  // ============================================
+  // 🔧 PARSERS PRIVADOS
+  // ============================================
+
   static Map<String, dynamic>? _parseProfile(String? json) {
     if (json == null || json.isEmpty) return null;
     try {
@@ -84,7 +154,6 @@ class StorageService {
     }
   }
 
-  // Parsers privados
   static Map<String, int> _parseInventory(String? json) {
     if (json == null || json.isEmpty) {
       return {
@@ -150,29 +219,44 @@ class StorageService {
     }
   }
 
-  // Limpiar todos los datos (para testing o reset)
+  // ============================================
+  // 🧹 UTILIDADES
+  // ============================================
+
+  /// Verificar si es la primera vez que se abre la app
+  static Future<bool> isFirstLaunch() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_firstLaunchKey) ?? true;
+  }
+
+  /// Marcar como no primera vez
+  static Future<void> setNotFirstLaunch() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_firstLaunchKey, false);
+  }
+
+  /// Limpiar todos los datos (para testing o reset)
   static Future<void> clearAllData() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
   }
 
-  // Guardar datos individuales (para optimización)
+  // ============================================
+  // 📝 MÉTODOS INDIVIDUALES (para optimización rápida)
+  // ============================================
+
+  /// Guardar solo puntos
   static Future<void> savePoints(int points) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_pointsKey, points);
   }
 
+  /// Guardar solo inventario (alias)
   static Future<void> saveInventory(Map<String, int> inventory) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_inventoryKey, jsonEncode(inventory));
+    await saveInventoryData(inventory);
   }
 
-  static Future<void> savePetData(Map<String, dynamic> petData) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_petDataKey, jsonEncode(petData));
-  }
-
-  // 🆕 Guardar solo el perfil
+  /// Guardar solo perfil
   static Future<void> saveProfile(Map<String, dynamic> profile) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_profileKey, jsonEncode(profile));

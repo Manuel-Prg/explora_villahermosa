@@ -1,4 +1,6 @@
 // lib/providers/app_provider.dart
+//los modulos de los provider aun se están implementando
+//aun no se ha dividido el provider principal en modulos
 import 'package:flutter/material.dart';
 import '../services/storage_service.dart';
 import '../models/user_profile_model.dart';
@@ -98,6 +100,14 @@ class AppProvider extends ChangeNotifier {
       notifyListeners();
       saveData();
     }
+  }
+
+  /// Actualizar preferencias del perfil
+  void updateProfilePreferences(UserProfile newProfile) {
+    _userProfile = newProfile;
+    debugPrint('⚙️ Preferencias actualizadas');
+    notifyListeners();
+    saveData();
   }
 
   /// Agregar XP y verificar subida de nivel

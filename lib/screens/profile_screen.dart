@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../utils/responsive_utils.dart';
+import 'settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -66,23 +67,12 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildHeader(
       BuildContext context, dynamic profile, DeviceType deviceType) {
-    ResponsiveUtils.getFontSize(deviceType, FontSize.body);
-
     return SliverAppBar(
-      expandedHeight: deviceType == DeviceType.mobile ? 220 : 260,
+      expandedHeight:
+          deviceType == DeviceType.mobile ? 220 : 260, // 👈 Aumentado
       pinned: true,
       flexibleSpace: LayoutBuilder(
         builder: (context, constraints) {
-          // Calcular el progreso del collapse
-          final settings = context
-              .dependOnInheritedWidgetOfExactType<FlexibleSpaceBarSettings>();
-          final deltaExtent = settings?.maxExtent ?? 200;
-          final minExtent = settings?.minExtent ?? 56;
-          final currentExtent = settings?.currentExtent ?? 200;
-
-          (1.0 - ((currentExtent - minExtent) / (deltaExtent - minExtent)))
-              .clamp(0.0, 1.0);
-
           return FlexibleSpaceBar(
             background: Container(
               decoration: BoxDecoration(
@@ -96,89 +86,129 @@ class ProfileScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  top: kToolbarHeight + 16,
-                  bottom: 12,
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Avatar
-                    Container(
-                      width: deviceType == DeviceType.mobile ? 64 : 80,
-                      height: deviceType == DeviceType.mobile ? 64 : 80,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                        border: Border.all(
-                          color: Colors.white,
-                          width: 3,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 10,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.person,
-                        size: deviceType == DeviceType.mobile ? 32 : 40,
-                        color: Colors.purple.shade600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    // Nombre
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        profile.name,
-                        style: TextStyle(
-                          fontSize: deviceType == DeviceType.mobile ? 20 : 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    // Nivel y puntos
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.stars,
-                            color: Colors.amber.shade300,
-                            size: 14,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Nivel ${profile.level} • ${profile.totalPoints} pts',
-                            style: TextStyle(
-                              fontSize:
-                                  deviceType == DeviceType.mobile ? 12 : 14,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
+              child: SafeArea(
+                // 👈 Agregado SafeArea
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    top: kToolbarHeight, // 👈 Removido el +8
+                    bottom: 16, // 👈 Aumentado para más espacio
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // 👈 Removido mainAxisSize: min
+                      // Avatar con efecto tap
+                      GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                  '¡Personalización de avatar próximamente! 🎨'),
+                              duration: Duration(seconds: 2),
                             ),
+                          );
+                        },
+                        child: Container(
+                          width: deviceType == DeviceType.mobile ? 64 : 80,
+                          height: deviceType == DeviceType.mobile ? 64 : 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                            border: Border.all(
+                              color: Colors.white,
+                              width: 3,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 10,
+                                spreadRadius: 2,
+                              ),
+                            ],
                           ),
-                        ],
+                          child: Icon(
+                            Icons.person,
+                            size: deviceType == DeviceType.mobile ? 32 : 40,
+                            color: Colors.purple.shade600,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 12), // 👈 Aumentado de 8 a 12
+                      // Nombre con efecto tap para editar
+                      GestureDetector(
+                        onTap: () => _showEditNameDialog(
+                          context,
+                          Provider.of<AppProvider>(context, listen: false),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  profile.name,
+                                  style: TextStyle(
+                                    fontSize: deviceType == DeviceType.mobile
+                                        ? 20
+                                        : 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Icon(
+                                Icons.edit,
+                                size: 16,
+                                color: Colors.white.withOpacity(0.8),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8), // 👈 Aumentado de 6 a 8
+                      // Nivel y puntos
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.stars,
+                              color: Colors.amber.shade300,
+                              size: 14,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Nivel ${profile.level} • ${profile.totalPoints} pts',
+                              style: TextStyle(
+                                fontSize:
+                                    deviceType == DeviceType.mobile ? 12 : 14,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -193,7 +223,12 @@ class ProfileScreen extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.settings),
           onPressed: () {
-            // TODO: Ir a settings
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SettingsScreen(),
+              ),
+            );
           },
         ),
       ],
@@ -603,6 +638,75 @@ class ProfileScreen extends StatelessWidget {
         isLocked ? Icons.lock : icon,
         color: isLocked ? Colors.grey.shade400 : color,
         size: 30,
+      ),
+    );
+  }
+
+  // 🆕 Método para editar nombre
+  void _showEditNameDialog(BuildContext context, AppProvider provider) {
+    final controller =
+        TextEditingController(text: provider.userProfile?.name ?? '');
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(Icons.edit, color: Colors.purple.shade600),
+            const SizedBox(width: 8),
+            const Text('Editar Nombre'),
+          ],
+        ),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: 'Ingresa tu nombre',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.purple.shade600, width: 2),
+            ),
+            prefixIcon: const Icon(Icons.person),
+          ),
+          maxLength: 20,
+          textCapitalization: TextCapitalization.words,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancelar',
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newName = controller.text.trim();
+              if (newName.isNotEmpty) {
+                provider.updateProfileName(newName);
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('¡Nombre actualizado a "$newName"! ✨'),
+                    backgroundColor: Colors.green,
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.purple.shade600,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('Guardar'),
+          ),
+        ],
       ),
     );
   }
