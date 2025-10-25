@@ -1,8 +1,10 @@
+// lib/services/storage_service.dart
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 class StorageService {
   // Keys para almacenar datos
+  static const String _profileKey = 'user_profile'; // 🆕 Nuevo
   static const String _pointsKey = 'user_points';
   static const String _levelKey = 'user_level';
   static const String _inventoryKey = 'user_inventory';
@@ -24,8 +26,9 @@ class StorageService {
     await prefs.setBool(_firstLaunchKey, false);
   }
 
-  // Guardar todos los datos del usuario
+  // 💾 Guardar todos los datos del usuario
   static Future<void> saveAllData({
+    Map<String, dynamic>? profile, // 🆕 Nuevo parámetro
     required int points,
     required int level,
     required Map<String, int> inventory,
@@ -36,7 +39,7 @@ class StorageService {
   }) async {
     final prefs = await SharedPreferences.getInstance();
 
-    await Future.wait([
+    final saveTasks = [
       prefs.setInt(_pointsKey, points),
       prefs.setInt(_levelKey, level),
       prefs.setString(_inventoryKey, jsonEncode(inventory)),
@@ -44,14 +47,22 @@ class StorageService {
       prefs.setString(_completedTriviasKey, jsonEncode(completedTrivias)),
       prefs.setString(_petDataKey, jsonEncode(petData)),
       prefs.setString(_achievementsKey, jsonEncode(achievements)),
-    ]);
+    ];
+
+    // 🆕 Guardar perfil si existe
+    if (profile != null) {
+      saveTasks.add(prefs.setString(_profileKey, jsonEncode(profile)));
+    }
+
+    await Future.wait(saveTasks);
   }
 
-  // Cargar todos los datos del usuario
+  // 📦 Cargar todos los datos del usuario
   static Future<Map<String, dynamic>> loadAllData() async {
     final prefs = await SharedPreferences.getInstance();
 
     return {
+      'profile': _parseProfile(prefs.getString(_profileKey)), // 🆕 Nuevo
       'points': prefs.getInt(_pointsKey) ?? 100,
       'level': prefs.getInt(_levelKey) ?? 1,
       'inventory': _parseInventory(prefs.getString(_inventoryKey)),
@@ -61,6 +72,16 @@ class StorageService {
       'petData': _parsePetData(prefs.getString(_petDataKey)),
       'achievements': _parseAchievements(prefs.getString(_achievementsKey)),
     };
+  }
+
+  // 🆕 Parser para el perfil
+  static Map<String, dynamic>? _parseProfile(String? json) {
+    if (json == null || json.isEmpty) return null;
+    try {
+      return jsonDecode(json) as Map<String, dynamic>;
+    } catch (e) {
+      return null;
+    }
   }
 
   // Parsers privados
@@ -149,5 +170,11 @@ class StorageService {
   static Future<void> savePetData(Map<String, dynamic> petData) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_petDataKey, jsonEncode(petData));
+  }
+
+  // 🆕 Guardar solo el perfil
+  static Future<void> saveProfile(Map<String, dynamic> profile) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_profileKey, jsonEncode(profile));
   }
 }

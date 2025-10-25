@@ -1,3 +1,4 @@
+// lib/screens/main_navigation.dart
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'trivia_screen.dart';
@@ -29,8 +30,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _currentIndex);
-
-    // Debug: Verificar que llegamos aquí
     debugPrint('✅ MainNavigationScreen iniciado correctamente');
     debugPrint('📱 Pantallas cargadas: ${_screens.length}');
   }
@@ -79,7 +78,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
           ],
         ),
         child: SafeArea(
-          top: false, // ← IMPORTANTE: No aplicar padding arriba
+          top: false,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
             child: Row(

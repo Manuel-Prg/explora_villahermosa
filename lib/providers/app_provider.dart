@@ -1,7 +1,13 @@
+// lib/providers/app_provider.dart
 import 'package:flutter/material.dart';
 import '../services/storage_service.dart';
+import '../models/user_profile_model.dart';
 
 class AppProvider extends ChangeNotifier {
+  // 👤 PERFIL DE USUARIO
+  UserProfile? _userProfile;
+  UserProfile? get userProfile => _userProfile;
+
   // Puntos acumulados por el usuario
   int _points = 100;
   int get points => _points;
@@ -73,6 +79,75 @@ class AppProvider extends ChangeNotifier {
   int get triviaProgress => _completedTrivias.length;
   int get sitesVisited => _visitedPlaces.length;
 
+  // 🆕 MÉTODOS DE PERFIL DE USUARIO
+
+  /// Inicializar perfil del usuario
+  void initializeProfile() {
+    if (_userProfile == null) {
+      _userProfile = UserProfile.initial();
+      debugPrint('👤 Perfil inicial creado');
+      notifyListeners();
+    }
+  }
+
+  /// Actualizar nombre del perfil
+  void updateProfileName(String name) {
+    if (_userProfile != null) {
+      _userProfile = _userProfile!.copyWith(name: name);
+      debugPrint('👤 Nombre actualizado: $name');
+      notifyListeners();
+      saveData();
+    }
+  }
+
+  /// Agregar XP y verificar subida de nivel
+  void addXP(int amount) {
+    if (_userProfile == null) return;
+
+    final newXP = _userProfile!.currentXP + amount;
+    final xpForNextLevel = _calculateXPForLevel(_userProfile!.level + 1);
+
+    if (newXP >= xpForNextLevel) {
+      // ¡Subió de nivel!
+      final newLevel = _userProfile!.level + 1;
+      _userProfile = _userProfile!.copyWith(
+        level: newLevel,
+        currentXP: newXP,
+      );
+      _level = newLevel; // Sincronizar con el sistema antiguo
+      debugPrint('🎉 ¡Subiste al nivel $newLevel!');
+    } else {
+      _userProfile = _userProfile!.copyWith(currentXP: newXP);
+    }
+
+    notifyListeners();
+  }
+
+  /// Calcular XP total necesario para un nivel
+  int _calculateXPForLevel(int targetLevel) {
+    if (targetLevel <= 1) return 0;
+    return (targetLevel - 1) * 100;
+  }
+
+  /// Incrementar una estadística específica
+  void incrementStat(String statName, [int amount = 1]) {
+    if (_userProfile == null) return;
+
+    final newStats = _userProfile!.stats.incrementStat(statName, amount);
+    _userProfile = _userProfile!.copyWith(stats: newStats);
+
+    debugPrint('📊 Stat incrementada: $statName +$amount');
+    notifyListeners();
+  }
+
+  /// Actualizar último login
+  void updateLastLogin() {
+    if (_userProfile == null) return;
+
+    _userProfile = _userProfile!.copyWith(lastLogin: DateTime.now());
+    notifyListeners();
+  }
+
   // 🔄 CARGAR DATOS AL INICIAR
   Future<void> loadData() async {
     debugPrint('🔄 AppProvider: Iniciando carga de datos...');
@@ -81,8 +156,23 @@ class AppProvider extends ChangeNotifier {
       final data = await StorageService.loadAllData();
       debugPrint('📦 AppProvider: Datos recibidos del storage');
 
+      // Cargar perfil de usuario
+      final profileData = data['profile'];
+      if (profileData != null && profileData is Map<String, dynamic>) {
+        _userProfile = UserProfile.fromJson(profileData);
+        debugPrint('👤 Perfil cargado: ${_userProfile!.name}');
+      } else {
+        // Si no hay perfil, crear uno inicial
+        initializeProfile();
+      }
+
       _points = data['points'] ?? 100;
       _level = data['level'] ?? 1;
+
+      // Sincronizar nivel con el perfil
+      if (_userProfile != null && _userProfile!.level != _level) {
+        _userProfile = _userProfile!.copyWith(level: _level);
+      }
 
       // Cargar inventario de forma segura
       final inventoryData = data['inventory'];
@@ -138,9 +228,13 @@ class AppProvider extends ChangeNotifier {
         achievements = achievementsData.cast<Map<String, dynamic>>();
       }
 
+      // Actualizar último login
+      updateLastLogin();
+
       _isLoaded = true;
 
       debugPrint('✅ AppProvider: Datos cargados correctamente');
+      debugPrint('   - Perfil: ${_userProfile?.name}');
       debugPrint('   - Puntos: $_points');
       debugPrint('   - Nivel: $_level');
       debugPrint('   - Inventario: ${_inventory.length} items');
@@ -152,6 +246,7 @@ class AppProvider extends ChangeNotifier {
       debugPrint('Stack trace: $stackTrace');
 
       // Inicializar con valores por defecto
+      initializeProfile();
       _isLoaded = true;
       notifyListeners();
     }
@@ -161,6 +256,7 @@ class AppProvider extends ChangeNotifier {
   Future<void> saveData() async {
     try {
       await StorageService.saveAllData(
+        profile: _userProfile?.toJson(),
         points: _points,
         level: _level,
         inventory: _inventory,
@@ -185,6 +281,8 @@ class AppProvider extends ChangeNotifier {
   // Agregar puntos
   void addPoints(int amount) {
     _points += amount;
+    _userProfile = _userProfile?.copyWith(totalPoints: _points);
+    addXP(amount); // Agregar XP al perfil
     _checkLevelUp();
     notifyListeners();
     saveData();
@@ -195,6 +293,7 @@ class AppProvider extends ChangeNotifier {
     int newLevel = (_points / 100).floor() + 1;
     if (newLevel > _level) {
       _level = newLevel;
+      _userProfile = _userProfile?.copyWith(level: newLevel);
     }
   }
 
@@ -202,6 +301,7 @@ class AppProvider extends ChangeNotifier {
   void visitPlace(String placeId) {
     if (!_visitedPlaces.contains(placeId)) {
       _visitedPlaces.add(placeId);
+      incrementStat('placesVisited'); // 🆕 Actualizar estadística
       addPoints(10);
     }
     notifyListeners();
@@ -216,6 +316,7 @@ class AppProvider extends ChangeNotifier {
   // Completar trivia
   void completeTrivia(String triviaId, int score) {
     _completedTrivias[triviaId] = true;
+    incrementStat('triviasCompleted'); // 🆕 Actualizar estadística
     addPoints(score);
     notifyListeners();
     saveData();
@@ -232,6 +333,7 @@ class AppProvider extends ChangeNotifier {
   void unlockPet(String petId) {
     if (!_unlockedPets.contains(petId)) {
       _unlockedPets.add(petId);
+      incrementStat('petsOwned'); // 🆕 Actualizar estadística
       notifyListeners();
       saveData();
     }
@@ -261,6 +363,7 @@ class AppProvider extends ChangeNotifier {
     if (!hasItem(foodType)) return;
 
     useItem(foodType);
+    incrementStat('petsFed'); // 🆕 Actualizar estadística
 
     int hungerRestore = 0;
     int happinessBonus = 0;
@@ -354,6 +457,7 @@ class AppProvider extends ChangeNotifier {
 
     _points -= price;
     addItemToInventory(itemId, 1);
+    incrementStat('itemsPurchased'); // 🆕 Actualizar estadística
     notifyListeners();
     saveData();
     return true;

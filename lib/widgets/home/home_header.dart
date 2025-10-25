@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
+import '../../screens/profile_screen.dart';
 import '../../utils/responsive_utils.dart';
 
 class HomeHeader extends StatelessWidget {
@@ -36,7 +37,13 @@ class HomeHeader extends StatelessWidget {
           child: _buildWelcomeText(greeting, emoji),
         ),
         const SizedBox(width: 12),
-        _buildPointsBadge(context),
+        Column(
+          children: [
+            _buildProfileButton(context), // 🆕 Botón de perfil
+            const SizedBox(height: 8),
+            _buildPointsBadge(context),
+          ],
+        ),
       ],
     );
   }
@@ -79,6 +86,91 @@ class HomeHeader extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  // 🆕 Botón de perfil
+  Widget _buildProfileButton(BuildContext context) {
+    final appProvider = Provider.of<AppProvider>(context);
+    final iconSize = deviceType == DeviceType.desktop
+        ? 28.0
+        : (deviceType == DeviceType.tablet ? 26.0 : 24.0);
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ProfileScreen(),
+          ),
+        );
+      },
+      child: Container(
+        padding: EdgeInsets.all(deviceType == DeviceType.mobile ? 8 : 10),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [
+              Color(0xFF9C27B0),
+              Color(0xFFBA68C8),
+            ],
+          ),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.purple.withOpacity(0.4),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Icon(
+              Icons.person,
+              color: Colors.white,
+              size: iconSize,
+            ),
+            // Badge de nivel
+            if (appProvider.level > 1)
+              Positioned(
+                right: -4,
+                top: -4,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF9800),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.orange.withOpacity(0.5),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 18,
+                    minHeight: 18,
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${appProvider.level}',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
