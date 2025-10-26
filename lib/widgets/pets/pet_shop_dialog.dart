@@ -1,6 +1,8 @@
+// lib/widgets/pets/pet_shop_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/app_provider.dart';
+import '../../providers/user_provider.dart';
+import '../../providers/inventory_provider.dart';
 import '../../models/shop_item_model.dart';
 import '../../utils/responsive_utils.dart';
 
@@ -38,7 +40,7 @@ class _PetShopDialogState extends State<PetShopDialog>
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<AppProvider>(context);
+    final userProvider = Provider.of<UserProvider>(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final deviceType = ResponsiveUtils.getDeviceType(screenWidth);
@@ -116,7 +118,7 @@ class _PetShopDialogState extends State<PetShopDialog>
                     const Icon(Icons.stars, color: Colors.white, size: 18),
                     const SizedBox(width: 6),
                     Text(
-                      '${provider.points}',
+                      '${userProvider.points}',
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -150,10 +152,10 @@ class _PetShopDialogState extends State<PetShopDialog>
             child: TabBarView(
               controller: _tabController,
               children: [
-                _buildItemGrid(ItemCategory.food, provider, deviceType),
-                _buildItemGrid(ItemCategory.toy, provider, deviceType),
-                _buildItemGrid(ItemCategory.medicine, provider, deviceType),
-                _buildItemGrid(ItemCategory.accessory, provider, deviceType),
+                _buildItemGrid(ItemCategory.food, deviceType),
+                _buildItemGrid(ItemCategory.toy, deviceType),
+                _buildItemGrid(ItemCategory.medicine, deviceType),
+                _buildItemGrid(ItemCategory.accessory, deviceType),
               ],
             ),
           ),
@@ -164,26 +166,30 @@ class _PetShopDialogState extends State<PetShopDialog>
 
   Widget _buildItemGrid(
     ItemCategory category,
-    AppProvider provider,
     DeviceType deviceType,
   ) {
     final items = ShopData.getItemsByCategory(category);
     final gridColumns = deviceType == DeviceType.mobile ? 2 : 3;
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(8),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: gridColumns,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 0.75,
-      ),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        return _ShopItemCard(
-          item: items[index],
-          provider: provider,
-          deviceType: deviceType,
+    return Consumer2<UserProvider, InventoryProvider>(
+      builder: (context, userProvider, inventoryProvider, child) {
+        return GridView.builder(
+          padding: const EdgeInsets.all(8),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: gridColumns,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 0.75,
+          ),
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            return _ShopItemCard(
+              item: items[index],
+              userProvider: userProvider,
+              inventoryProvider: inventoryProvider,
+              deviceType: deviceType,
+            );
+          },
         );
       },
     );
@@ -192,12 +198,14 @@ class _PetShopDialogState extends State<PetShopDialog>
 
 class _ShopItemCard extends StatelessWidget {
   final ShopItem item;
-  final AppProvider provider;
+  final UserProvider userProvider;
+  final InventoryProvider inventoryProvider;
   final DeviceType deviceType;
 
   const _ShopItemCard({
     required this.item,
-    required this.provider,
+    required this.userProvider,
+    required this.inventoryProvider,
     required this.deviceType,
   });
 
@@ -207,8 +215,8 @@ class _ShopItemCard extends StatelessWidget {
     final bodySize = ResponsiveUtils.getFontSize(deviceType, FontSize.body);
     final captionSize =
         ResponsiveUtils.getFontSize(deviceType, FontSize.caption);
-    final canAfford = provider.points >= item.price;
-    final ownedCount = provider.getItemCount(item.id);
+    final canAfford = userProvider.points >= item.price;
+    final ownedCount = inventoryProvider.getItemCount(item.id);
 
     return GestureDetector(
       onTap: () => _handlePurchase(context),
@@ -349,7 +357,7 @@ class _ShopItemCard extends StatelessWidget {
   }
 
   void _handlePurchase(BuildContext context) {
-    if (provider.points < item.price) {
+    if (userProvider.points < item.price) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('No tienes suficientes monedas'),
@@ -408,16 +416,20 @@ class _ShopItemCard extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              if (provider.buyItem(item.id, item.price)) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('¡Has comprado ${item.name}!'),
-                    backgroundColor: Colors.green,
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              }
+              // Restar puntos del UserProvider
+              userProvider.addPoints(-item.price);
+
+              // Agregar item al InventoryProvider
+              inventoryProvider.addItemToInventory(item.id, 1);
+
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('¡Has comprado ${item.name}!'),
+                  backgroundColor: Colors.green,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: item.color,

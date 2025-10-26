@@ -1,7 +1,8 @@
 // lib/widgets/home/quick_stats.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/app_provider.dart';
+import '../../providers/game_progress_provider.dart';
+import '../../providers/user_provider.dart';
 import '../../utils/responsive_utils.dart';
 
 class QuickStats extends StatelessWidget {
@@ -14,7 +15,8 @@ class QuickStats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appProvider = Provider.of<AppProvider>(context);
+    final progressProvider = Provider.of<GameProgressProvider>(context);
+    final userProvider = Provider.of<UserProvider>(context);
     final spacing = ResponsiveUtils.getSpacing(deviceType);
 
     return Row(
@@ -24,7 +26,7 @@ class QuickStats extends StatelessWidget {
             icon: Icons.emoji_events_rounded,
             label: 'Logros',
             value:
-                '${appProvider.achievements.where((a) => a['unlocked'] == true).length}/${appProvider.achievements.length}',
+                '${progressProvider.achievements.where((a) => a['unlocked'] == true).length}/${progressProvider.achievements.length}',
             color: const Color(0xFF9C27B0),
             gradient: const LinearGradient(
               colors: [Color(0xFFAB47BC), Color(0xFF9C27B0)],
@@ -37,7 +39,7 @@ class QuickStats extends StatelessWidget {
           child: _StatCard(
             icon: Icons.local_fire_department_rounded,
             label: 'Racha',
-            value: '${appProvider.level} días',
+            value: '${userProvider.level} días',
             color: const Color(0xFFFF5722),
             gradient: const LinearGradient(
               colors: [Color(0xFFFF6F42), Color(0xFFFF5722)],

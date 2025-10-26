@@ -1,7 +1,7 @@
 // lib/widgets/home/home_header.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/app_provider.dart';
+import '../../providers/user_provider.dart';
 import '../../screens/profile_screen.dart';
 import '../../utils/responsive_utils.dart';
 
@@ -39,7 +39,7 @@ class HomeHeader extends StatelessWidget {
         const SizedBox(width: 12),
         Column(
           children: [
-            _buildProfileButton(context), // 🆕 Botón de perfil
+            _buildProfileButton(context),
             const SizedBox(height: 8),
             _buildPointsBadge(context),
           ],
@@ -89,9 +89,8 @@ class HomeHeader extends StatelessWidget {
     );
   }
 
-  // 🆕 Botón de perfil
   Widget _buildProfileButton(BuildContext context) {
-    final appProvider = Provider.of<AppProvider>(context);
+    final userProvider = Provider.of<UserProvider>(context);
     final iconSize = deviceType == DeviceType.desktop
         ? 28.0
         : (deviceType == DeviceType.tablet ? 26.0 : 24.0);
@@ -132,7 +131,7 @@ class HomeHeader extends StatelessWidget {
               size: iconSize,
             ),
             // Badge de nivel
-            if (appProvider.level > 1)
+            if (userProvider.level > 1)
               Positioned(
                 right: -4,
                 top: -4,
@@ -158,7 +157,7 @@ class HomeHeader extends StatelessWidget {
                   ),
                   child: Center(
                     child: Text(
-                      '${appProvider.level}',
+                      '${userProvider.level}',
                       style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
@@ -175,7 +174,7 @@ class HomeHeader extends StatelessWidget {
   }
 
   Widget _buildPointsBadge(BuildContext context) {
-    final appProvider = Provider.of<AppProvider>(context);
+    final userProvider = Provider.of<UserProvider>(context);
     final badgePadding = deviceType == DeviceType.desktop
         ? 20.0
         : (deviceType == DeviceType.tablet ? 18.0 : 16.0);
@@ -222,7 +221,7 @@ class HomeHeader extends StatelessWidget {
               Icon(Icons.stars, color: Colors.white, size: iconSize),
               const SizedBox(width: 6),
               Text(
-                '${appProvider.points}',
+                '${userProvider.points}',
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,

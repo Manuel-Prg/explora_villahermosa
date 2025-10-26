@@ -1,6 +1,7 @@
+// lib/widgets/ar/ar_header.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/app_provider.dart';
+import '../../providers/user_provider.dart';
 import '../../utils/responsive_utils.dart';
 
 class ARHeaderWidget extends StatelessWidget {
@@ -8,7 +9,7 @@ class ARHeaderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<AppProvider>(context);
+    final userProvider = Provider.of<UserProvider>(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final deviceType = ResponsiveUtils.getDeviceType(screenWidth);
     final titleSize = ResponsiveUtils.getFontSize(deviceType, FontSize.title);
@@ -93,7 +94,7 @@ class ARHeaderWidget extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  '${provider.points}',
+                  '${userProvider.points}',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,

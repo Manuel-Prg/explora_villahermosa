@@ -68,6 +68,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Los widgets home utilizan Consumer internamente
+                      // para acceder a los providers específicos que necesitan
                       HomeHeader(
                         deviceType: deviceType,
                         shimmerController: _shimmerController,

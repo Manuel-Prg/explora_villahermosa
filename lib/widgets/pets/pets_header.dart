@@ -1,9 +1,12 @@
+// lib/widgets/pets/pets_header.dart
 import 'package:flutter/material.dart';
-import '../../providers/app_provider.dart';
+import 'package:provider/provider.dart';
+import '../../providers/pet_provider.dart';
+import '../../providers/user_provider.dart';
 import '../../utils/responsive_utils.dart';
 
 class PetsHeaderWidget extends StatelessWidget {
-  final AppProvider provider;
+  final PetProvider provider;
 
   const PetsHeaderWidget({
     super.key,
@@ -78,45 +81,50 @@ class PetsHeaderWidget extends StatelessWidget {
                 ],
               ),
             ),
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: deviceType == DeviceType.mobile ? 12 : 16,
-                vertical: deviceType == DeviceType.mobile ? 6 : 8,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.25),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.3),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.white.withOpacity(0.1),
-                    blurRadius: 10,
-                    spreadRadius: 1,
+            // Usar Consumer para obtener los puntos del UserProvider
+            Consumer<UserProvider>(
+              builder: (context, userProvider, child) {
+                return Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: deviceType == DeviceType.mobile ? 12 : 16,
+                    vertical: deviceType == DeviceType.mobile ? 6 : 8,
                   ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.stars,
-                    color: Colors.amber.shade300,
-                    size: iconSize,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${provider.points}',
-                    style: TextStyle(
-                      fontSize: titleSize * 0.75,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.25),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.3),
+                      width: 1.5,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.white.withOpacity(0.1),
+                        blurRadius: 10,
+                        spreadRadius: 1,
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.stars,
+                        color: Colors.amber.shade300,
+                        size: iconSize,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${userProvider.points}',
+                        style: TextStyle(
+                          fontSize: titleSize * 0.75,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ],
         ),

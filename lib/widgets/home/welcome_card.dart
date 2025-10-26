@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
-import '../../providers/app_provider.dart';
+import '../../providers/user_provider.dart';
+import '../../providers/game_progress_provider.dart';
 import '../../utils/responsive_utils.dart';
 
 class WelcomeCard extends StatelessWidget {
@@ -17,22 +18,24 @@ class WelcomeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appProvider = Provider.of<AppProvider>(context);
-    final progressValue = (appProvider.points % 100) / 100;
+    final userProvider = Provider.of<UserProvider>(context);
+    final progressProvider = Provider.of<GameProgressProvider>(context);
+    final progressValue = (userProvider.points % 100) / 100;
 
     return AnimatedBuilder(
       animation: floatController,
       builder: (context, child) {
         return Transform.translate(
           offset: Offset(0, math.sin(floatController.value * math.pi * 2) * 3),
-          child: _buildCard(context, appProvider, progressValue),
+          child: _buildCard(
+              context, userProvider, progressProvider, progressValue),
         );
       },
     );
   }
 
-  Widget _buildCard(
-      BuildContext context, AppProvider appProvider, double progressValue) {
+  Widget _buildCard(BuildContext context, UserProvider userProvider,
+      GameProgressProvider progressProvider, double progressValue) {
     final cardPadding = ResponsiveUtils.getCardPadding(deviceType) + 6;
 
     return Container(
@@ -58,18 +61,19 @@ class WelcomeCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _buildLevelInfo(appProvider),
+          _buildLevelInfo(userProvider, progressProvider),
           SizedBox(
               height: deviceType == DeviceType.desktop
                   ? 22
                   : (deviceType == DeviceType.tablet ? 20 : 18)),
-          _buildProgressBar(appProvider, progressValue),
+          _buildProgressBar(userProvider, progressValue),
         ],
       ),
     );
   }
 
-  Widget _buildLevelInfo(AppProvider appProvider) {
+  Widget _buildLevelInfo(
+      UserProvider userProvider, GameProgressProvider progressProvider) {
     final iconSize =
         ResponsiveUtils.getIconSize(deviceType, IconSizeType.large);
     final levelSize = deviceType == DeviceType.desktop
@@ -129,7 +133,7 @@ class WelcomeCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      '${appProvider.level}',
+                      '${userProvider.level}',
                       style: TextStyle(
                         color: const Color(0xFFFF9800),
                         fontSize: levelSize,
@@ -141,7 +145,7 @@ class WelcomeCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                '${appProvider.visitedPlaces.length} lugares visitados 📍',
+                '${progressProvider.visitedPlaces.length} lugares visitados 📍',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.9),
                   fontSize: textSize,
@@ -155,7 +159,7 @@ class WelcomeCard extends StatelessWidget {
     );
   }
 
-  Widget _buildProgressBar(AppProvider appProvider, double progressValue) {
+  Widget _buildProgressBar(UserProvider userProvider, double progressValue) {
     final fontSize = ResponsiveUtils.getFontSize(deviceType, FontSize.caption);
     final barHeight = deviceType == DeviceType.desktop
         ? 12.0
@@ -217,7 +221,7 @@ class WelcomeCard extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          '${appProvider.getPointsForNextLevel()} puntos restantes',
+          '${userProvider.getPointsForNextLevel()} puntos restantes',
           style: TextStyle(
             color: Colors.white.withOpacity(0.8),
             fontSize: fontSize,

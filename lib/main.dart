@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'providers/app_provider.dart';
+import 'providers/user_provider.dart';
+import 'providers/pet_provider.dart';
+import 'providers/game_progress_provider.dart';
+import 'providers/inventory_provider.dart';
 import 'screens/splash_screen.dart';
 
 void main() {
@@ -26,8 +29,13 @@ void main() {
   );
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => AppProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => PetProvider()),
+        ChangeNotifierProvider(create: (_) => GameProgressProvider()),
+        ChangeNotifierProvider(create: (_) => InventoryProvider()),
+      ],
       child: const MyApp(),
     ),
   );

@@ -1,7 +1,7 @@
 // lib/screens/settings_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/app_provider.dart';
+import '../providers/user_provider.dart';
 import '../utils/responsive_utils.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -9,8 +9,6 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<AppProvider>(context);
-    final profile = provider.userProfile;
     final deviceType = ResponsiveUtils.fromContext(context);
 
     return Scaffold(
@@ -33,58 +31,66 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: ResponsiveUtils.getScreenPadding(deviceType),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Sección de Perfil
-                _buildSectionTitle(
-                    'Perfil de Usuario', Icons.person, deviceType),
-                const SizedBox(height: 12),
-                _buildProfileSection(context, provider, profile, deviceType),
+          child: Consumer<UserProvider>(
+            builder: (context, userProvider, child) {
+              final profile = userProvider.userProfile;
 
-                const SizedBox(height: 24),
+              return SingleChildScrollView(
+                padding: ResponsiveUtils.getScreenPadding(deviceType),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Sección de Perfil
+                    _buildSectionTitle(
+                        'Perfil de Usuario', Icons.person, deviceType),
+                    const SizedBox(height: 12),
+                    _buildProfileSection(
+                        context, userProvider, profile, deviceType),
 
-                // Sección de Audio
-                _buildSectionTitle('Audio', Icons.volume_up, deviceType),
-                const SizedBox(height: 12),
-                _buildAudioSection(context, provider, profile, deviceType),
+                    const SizedBox(height: 24),
 
-                const SizedBox(height: 24),
+                    // Sección de Audio
+                    _buildSectionTitle('Audio', Icons.volume_up, deviceType),
+                    const SizedBox(height: 12),
+                    _buildAudioSection(
+                        context, userProvider, profile, deviceType),
 
-                // Sección de Notificaciones
-                _buildSectionTitle(
-                    'Notificaciones', Icons.notifications, deviceType),
-                const SizedBox(height: 12),
-                _buildNotificationsSection(
-                    context, provider, profile, deviceType),
+                    const SizedBox(height: 24),
 
-                const SizedBox(height: 24),
+                    // Sección de Notificaciones
+                    _buildSectionTitle(
+                        'Notificaciones', Icons.notifications, deviceType),
+                    const SizedBox(height: 12),
+                    _buildNotificationsSection(
+                        context, userProvider, profile, deviceType),
 
-                // Sección de Realidad Aumentada
-                _buildSectionTitle(
-                    'Realidad Aumentada', Icons.camera_alt, deviceType),
-                const SizedBox(height: 12),
-                _buildARSection(context, provider, profile, deviceType),
+                    const SizedBox(height: 24),
 
-                const SizedBox(height: 24),
+                    // Sección de Realidad Aumentada
+                    _buildSectionTitle(
+                        'Realidad Aumentada', Icons.camera_alt, deviceType),
+                    const SizedBox(height: 12),
+                    _buildARSection(context, userProvider, profile, deviceType),
 
-                // Sección de Datos
-                _buildSectionTitle('Datos', Icons.storage, deviceType),
-                const SizedBox(height: 12),
-                _buildDataSection(context, provider, deviceType),
+                    const SizedBox(height: 24),
 
-                const SizedBox(height: 24),
+                    // Sección de Datos
+                    _buildSectionTitle('Datos', Icons.storage, deviceType),
+                    const SizedBox(height: 12),
+                    _buildDataSection(context, deviceType),
 
-                // Sección Acerca de
-                _buildSectionTitle('Acerca de', Icons.info, deviceType),
-                const SizedBox(height: 12),
-                _buildAboutSection(context, deviceType),
+                    const SizedBox(height: 24),
 
-                const SizedBox(height: 80),
-              ],
-            ),
+                    // Sección Acerca de
+                    _buildSectionTitle('Acerca de', Icons.info, deviceType),
+                    const SizedBox(height: 12),
+                    _buildAboutSection(context, deviceType),
+
+                    const SizedBox(height: 80),
+                  ],
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -113,7 +119,7 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _buildProfileSection(
     BuildContext context,
-    AppProvider provider,
+    UserProvider userProvider,
     dynamic profile,
     DeviceType deviceType,
   ) {
@@ -125,7 +131,7 @@ class SettingsScreen extends StatelessWidget {
             icon: Icons.edit,
             title: 'Nombre de Usuario',
             subtitle: profile?.name ?? 'Explorador',
-            onTap: () => _showEditNameDialog(context, provider),
+            onTap: () => _showEditNameDialog(context, userProvider),
             deviceType: deviceType,
           ),
           const Divider(height: 1),
@@ -151,7 +157,7 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _buildAudioSection(
     BuildContext context,
-    AppProvider provider,
+    UserProvider userProvider,
     dynamic profile,
     DeviceType deviceType,
   ) {
@@ -171,7 +177,7 @@ class SettingsScreen extends StatelessWidget {
                 final newPrefs =
                     profile.preferences.copyWith(musicEnabled: value);
                 final newProfile = profile.copyWith(preferences: newPrefs);
-                provider.updateProfilePreferences(newProfile);
+                userProvider.updateProfilePreferences(newProfile);
               }
             },
             deviceType: deviceType,
@@ -187,7 +193,7 @@ class SettingsScreen extends StatelessWidget {
                 final newPrefs =
                     profile.preferences.copyWith(soundEnabled: value);
                 final newProfile = profile.copyWith(preferences: newPrefs);
-                provider.updateProfilePreferences(newProfile);
+                userProvider.updateProfilePreferences(newProfile);
               }
             },
             deviceType: deviceType,
@@ -199,7 +205,7 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _buildNotificationsSection(
     BuildContext context,
-    AppProvider provider,
+    UserProvider userProvider,
     dynamic profile,
     DeviceType deviceType,
   ) {
@@ -217,7 +223,7 @@ class SettingsScreen extends StatelessWidget {
             final newPrefs =
                 profile.preferences.copyWith(notificationsEnabled: value);
             final newProfile = profile.copyWith(preferences: newPrefs);
-            provider.updateProfilePreferences(newProfile);
+            userProvider.updateProfilePreferences(newProfile);
           }
         },
         deviceType: deviceType,
@@ -227,7 +233,7 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _buildARSection(
     BuildContext context,
-    AppProvider provider,
+    UserProvider userProvider,
     dynamic profile,
     DeviceType deviceType,
   ) {
@@ -244,7 +250,7 @@ class SettingsScreen extends StatelessWidget {
           if (profile != null) {
             final newPrefs = profile.preferences.copyWith(arEnabled: value);
             final newProfile = profile.copyWith(preferences: newPrefs);
-            provider.updateProfilePreferences(newProfile);
+            userProvider.updateProfilePreferences(newProfile);
           }
         },
         deviceType: deviceType,
@@ -252,8 +258,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDataSection(
-      BuildContext context, AppProvider provider, DeviceType deviceType) {
+  Widget _buildDataSection(BuildContext context, DeviceType deviceType) {
     return Container(
       decoration: _cardDecoration(),
       child: Column(
@@ -278,7 +283,7 @@ class SettingsScreen extends StatelessWidget {
             icon: Icons.refresh,
             title: 'Restablecer Progreso',
             subtitle: 'Comenzar de nuevo',
-            onTap: () => _showResetDialog(context, provider),
+            onTap: () => _showResetDialog(context),
             deviceType: deviceType,
             showArrow: true,
             isDestructive: true,
@@ -435,9 +440,9 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showEditNameDialog(BuildContext context, AppProvider provider) {
+  void _showEditNameDialog(BuildContext context, UserProvider userProvider) {
     final controller =
-        TextEditingController(text: provider.userProfile?.name ?? '');
+        TextEditingController(text: userProvider.userProfile?.name ?? '');
 
     showDialog(
       context: context,
@@ -478,7 +483,7 @@ class SettingsScreen extends StatelessWidget {
             onPressed: () {
               final newName = controller.text.trim();
               if (newName.isNotEmpty) {
-                provider.updateProfileName(newName);
+                userProvider.updateProfileName(newName);
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -503,7 +508,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showResetDialog(BuildContext context, AppProvider provider) {
+  void _showResetDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -526,7 +531,7 @@ class SettingsScreen extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () async {
-              // TODO: Implementar reset completo
+              // TODO: Implementar reset completo llamando a todos los providers
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(

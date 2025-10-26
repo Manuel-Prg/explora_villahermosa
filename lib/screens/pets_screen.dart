@@ -1,6 +1,9 @@
+// lib/screens/pets_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/app_provider.dart';
+import '../providers/pet_provider.dart';
+import '../providers/inventory_provider.dart';
+import '../providers/user_provider.dart';
 import '../widgets/pets/pet_display.dart';
 import '../widgets/pets/pet_stats.dart';
 import '../widgets/pets/pet_selector.dart';
@@ -105,7 +108,6 @@ class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<AppProvider>(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final deviceType = ResponsiveUtils.getDeviceType(screenWidth);
@@ -117,10 +119,14 @@ class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
         bottom: false,
         child: Column(
           children: [
-            PetsHeaderWidget(provider: provider),
+            // Header usando PetProvider
+            Consumer<PetProvider>(
+              builder: (context, petProvider, child) {
+                return PetsHeaderWidget(provider: petProvider);
+              },
+            ),
             Expanded(
               child: _buildResponsiveLayout(
-                provider,
                 deviceType,
                 spacing,
                 screenWidth,
@@ -134,7 +140,6 @@ class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildResponsiveLayout(
-    AppProvider provider,
     DeviceType deviceType,
     ResponsiveSpacing spacing,
     double screenWidth,
@@ -142,88 +147,90 @@ class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
   ) {
     // Tablet en horizontal: layout de 2 columnas
     if (deviceType == DeviceType.tablet && screenWidth > screenHeight) {
-      return _buildTwoColumnLayout(provider, deviceType, spacing);
+      return _buildTwoColumnLayout(deviceType, spacing);
     }
 
     // Tablet vertical, desktop o móvil: layout de 1 columna con max width
-    return _buildSingleColumnLayout(provider, deviceType, spacing);
+    return _buildSingleColumnLayout(deviceType, spacing);
   }
 
   Widget _buildTwoColumnLayout(
-    AppProvider provider,
     DeviceType deviceType,
     ResponsiveSpacing spacing,
   ) {
     final padding = ResponsiveUtils.getScreenPadding(deviceType);
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Columna izquierda: Display de mascota
-        Expanded(
-          flex: 5,
-          child: SingleChildScrollView(
-            padding: EdgeInsets.only(
-              left: padding.left,
-              top: padding.top,
-              bottom: padding.bottom,
-              right: spacing.card,
+    return Consumer2<PetProvider, InventoryProvider>(
+      builder: (context, petProvider, inventory, child) {
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Columna izquierda: Display de mascota
+            Expanded(
+              flex: 5,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.only(
+                  left: padding.left,
+                  top: padding.top,
+                  bottom: padding.bottom,
+                  right: spacing.card,
+                ),
+                child: PetDisplayWidget(
+                  provider: petProvider,
+                  deviceType: deviceType,
+                  floatingAnimation: _floatingAnimation,
+                  rotateAnimation: _rotateAnimation,
+                  pulseAnimation: _pulseAnimation,
+                  heartController: _heartController,
+                  showHearts: showHearts,
+                  showSparkles: showSparkles,
+                  show3DViewer: show3DViewer,
+                  onTriggerHappiness: triggerHappiness,
+                  onToggle3DViewer: toggle3DViewer,
+                ),
+              ),
             ),
-            child: PetDisplayWidget(
-              provider: provider,
-              deviceType: deviceType,
-              floatingAnimation: _floatingAnimation,
-              rotateAnimation: _rotateAnimation,
-              pulseAnimation: _pulseAnimation,
-              heartController: _heartController,
-              showHearts: showHearts,
-              showSparkles: showSparkles,
-              show3DViewer: show3DViewer,
-              onTriggerHappiness: triggerHappiness,
-              onToggle3DViewer: toggle3DViewer,
-            ),
-          ),
-        ),
 
-        // Columna derecha: Stats y selector
-        Expanded(
-          flex: 4,
-          child: SingleChildScrollView(
-            padding: EdgeInsets.only(
-              right: padding.right,
-              top: padding.top,
-              bottom: padding.bottom,
-              left: spacing.card,
-            ),
-            child: Column(
-              children: [
-                PetStatsWidget(
-                  provider: provider,
-                  deviceType: deviceType,
-                  onFeedPet: () => _feedPet(provider),
-                  onPlayWithPet: () => _playWithPet(provider),
+            // Columna derecha: Stats y selector
+            Expanded(
+              flex: 4,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.only(
+                  right: padding.right,
+                  top: padding.top,
+                  bottom: padding.bottom,
+                  left: spacing.card,
                 ),
-                SizedBox(height: spacing.section),
-                PetSelectorWidget(
-                  provider: provider,
-                  deviceType: deviceType,
-                  onPetSelected: (petId, petName, petColor, hasModel) {
-                    provider.selectPet(petId);
-                    triggerHappiness();
-                    _showPetSelectedSnackbar(petName, petColor, hasModel);
-                  },
+                child: Column(
+                  children: [
+                    PetStatsWidget(
+                      provider: petProvider,
+                      deviceType: deviceType,
+                      onFeedPet: () => _feedPet(petProvider, inventory),
+                      onPlayWithPet: () => _playWithPet(petProvider),
+                    ),
+                    SizedBox(height: spacing.section),
+                    PetSelectorWidget(
+                      provider: petProvider,
+                      deviceType: deviceType,
+                      onPetSelected: (petId, petName, petColor, hasModel) {
+                        petProvider.selectPet(petId);
+                        triggerHappiness();
+                        _showPetSelectedSnackbar(petName, petColor, hasModel);
+                      },
+                    ),
+                    SizedBox(height: spacing.section),
+                  ],
                 ),
-                SizedBox(height: spacing.section),
-              ],
+              ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 
   Widget _buildSingleColumnLayout(
-    AppProvider provider,
     DeviceType deviceType,
     ResponsiveSpacing spacing,
   ) {
@@ -231,80 +238,99 @@ class _PetsScreenState extends State<PetsScreen> with TickerProviderStateMixin {
     final maxWidth = ResponsiveUtils.getMaxContentWidth(deviceType);
     final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
 
-    return Center(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: maxWidth),
-        child: SingleChildScrollView(
-          padding: EdgeInsets.only(
-            left: padding.left,
-            right: padding.right,
-            top: padding.top,
-            bottom: bottomPadding > 0 ? bottomPadding + 20 : padding.bottom,
+    return Consumer2<PetProvider, InventoryProvider>(
+      builder: (context, petProvider, inventory, child) {
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidth),
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(
+                left: padding.left,
+                right: padding.right,
+                top: padding.top,
+                bottom: bottomPadding > 0 ? bottomPadding + 20 : padding.bottom,
+              ),
+              child: Column(
+                children: [
+                  PetDisplayWidget(
+                    provider: petProvider,
+                    deviceType: deviceType,
+                    floatingAnimation: _floatingAnimation,
+                    rotateAnimation: _rotateAnimation,
+                    pulseAnimation: _pulseAnimation,
+                    heartController: _heartController,
+                    showHearts: showHearts,
+                    showSparkles: showSparkles,
+                    show3DViewer: show3DViewer,
+                    onTriggerHappiness: triggerHappiness,
+                    onToggle3DViewer: toggle3DViewer,
+                  ),
+                  SizedBox(height: spacing.section),
+                  PetStatsWidget(
+                    provider: petProvider,
+                    deviceType: deviceType,
+                    onFeedPet: () => _feedPet(petProvider, inventory),
+                    onPlayWithPet: () => _playWithPet(petProvider),
+                  ),
+                  SizedBox(height: spacing.section),
+                  PetSelectorWidget(
+                    provider: petProvider,
+                    deviceType: deviceType,
+                    onPetSelected: (petId, petName, petColor, hasModel) {
+                      petProvider.selectPet(petId);
+                      triggerHappiness();
+                      _showPetSelectedSnackbar(petName, petColor, hasModel);
+                    },
+                  ),
+                  const SizedBox(height: 100),
+                ],
+              ),
+            ),
           ),
-          child: Column(
-            children: [
-              PetDisplayWidget(
-                provider: provider,
-                deviceType: deviceType,
-                floatingAnimation: _floatingAnimation,
-                rotateAnimation: _rotateAnimation,
-                pulseAnimation: _pulseAnimation,
-                heartController: _heartController,
-                showHearts: showHearts,
-                showSparkles: showSparkles,
-                show3DViewer: show3DViewer,
-                onTriggerHappiness: triggerHappiness,
-                onToggle3DViewer: toggle3DViewer,
-              ),
-              SizedBox(height: spacing.section),
-              PetStatsWidget(
-                provider: provider,
-                deviceType: deviceType,
-                onFeedPet: () => _feedPet(provider),
-                onPlayWithPet: () => _playWithPet(provider),
-              ),
-              SizedBox(height: spacing.section),
-              PetSelectorWidget(
-                provider: provider,
-                deviceType: deviceType,
-                onPetSelected: (petId, petName, petColor, hasModel) {
-                  provider.selectPet(petId);
-                  triggerHappiness();
-                  _showPetSelectedSnackbar(petName, petColor, hasModel);
-                },
-              ),
-              const SizedBox(height: 100),
-            ],
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  void _feedPet(AppProvider provider) {
-    if (provider.points >= 10) {
-      provider.feedPet(20 as String);
+  void _feedPet(PetProvider petProvider, InventoryProvider inventory) {
+    // Verificar si tiene comida en el inventario
+    if (inventory.hasItem('comida_basica')) {
+      inventory.useItem('comida_basica');
+      petProvider.feedPet('comida_basica');
       triggerHappiness();
       _showSuccessDialog(
         '¡Mascota alimentada!',
-        'Tu mascota está feliz y llena. -10 monedas',
+        'Tu mascota está feliz y llena.',
         Icons.restaurant,
         const Color(0xFFFFB74D),
       );
     } else {
-      _showErrorDialog(
-        'No tienes suficientes monedas para alimentar a tu mascota.',
-      );
+      // Verificar si tiene puntos para comprar comida
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      if (userProvider.points >= 10) {
+        userProvider.addPoints(-10);
+        petProvider.feedPet('comida_basica');
+        triggerHappiness();
+        _showSuccessDialog(
+          '¡Mascota alimentada!',
+          'Tu mascota está feliz y llena. -10 monedas',
+          Icons.restaurant,
+          const Color(0xFFFFB74D),
+        );
+      } else {
+        _showErrorDialog(
+          'No tienes comida ni suficientes monedas para alimentar a tu mascota.',
+        );
+      }
     }
   }
 
-  void _playWithPet(AppProvider provider) {
-    provider.updatePetExperience(10);
-    provider.decreasePetHunger();
+  void _playWithPet(PetProvider petProvider) {
+    petProvider.playWithPet();
     triggerHappiness();
     _showSuccessDialog(
       '¡Jugaste con tu mascota!',
-      'Ganaste +10 de experiencia. ¡Tu mascota está feliz!',
+      'Ganaste experiencia. ¡Tu mascota está feliz!',
       Icons.sports_esports,
       const Color(0xFF66BB6A),
     );

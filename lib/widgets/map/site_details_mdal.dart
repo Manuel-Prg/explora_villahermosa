@@ -1,6 +1,8 @@
+// lib/widgets/map/site_details_modal.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/app_provider.dart';
+import '../../providers/user_provider.dart';
+import '../../providers/game_progress_provider.dart';
 import '../../utils/responsive_utils.dart';
 
 class SiteDetailsModal extends StatelessWidget {
@@ -77,8 +79,10 @@ class SiteDetailsModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<AppProvider>(context, listen: false);
-    final isVisited = provider.visitedPlaces.contains(site['id']);
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final progressProvider =
+        Provider.of<GameProgressProvider>(context, listen: false);
+    final isVisited = progressProvider.visitedPlaces.contains(site['id']);
     final deviceType = ResponsiveUtils.fromContext(context);
     final spacing = ResponsiveUtils.getSpacing(deviceType);
     final cardPadding = ResponsiveUtils.getCardPadding(deviceType);
@@ -271,8 +275,8 @@ class SiteDetailsModal extends StatelessWidget {
                 ),
               ),
               onPressed: () {
-                provider.addPoints(site['reward']);
-                provider.visitPlace(site['id']);
+                userProvider.addPoints(site['reward']);
+                progressProvider.visitPlace(site['id']);
                 Navigator.pop(context);
                 onVisit();
               },

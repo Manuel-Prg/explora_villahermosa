@@ -1,12 +1,13 @@
+// lib/widgets/pets/pet_display.dart
 import 'package:flutter/material.dart';
 import 'package:model_viewer_plus/model_viewer_plus.dart';
 import 'dart:math' as math;
-import '../../providers/app_provider.dart';
+import '../../providers/pet_provider.dart';
 import '../../models/pet_model.dart';
 import '../../utils/responsive_utils.dart';
 
 class PetDisplayWidget extends StatelessWidget {
-  final AppProvider provider;
+  final PetProvider provider;
   final DeviceType deviceType;
   final Animation<double> floatingAnimation;
   final Animation<double> rotateAnimation;

@@ -1,7 +1,8 @@
 // lib/widgets/home/place_card.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/app_provider.dart';
+import '../../providers/user_provider.dart';
+import '../../providers/game_progress_provider.dart';
 import '../../models/place_model.dart';
 import '../../utils/responsive_utils.dart';
 
@@ -17,8 +18,8 @@ class PlaceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appProvider = Provider.of<AppProvider>(context);
-    final isVisited = appProvider.visitedPlaces.contains(place.id);
+    final progressProvider = Provider.of<GameProgressProvider>(context);
+    final isVisited = progressProvider.visitedPlaces.contains(place.id);
 
     final cardWidth = deviceType == DeviceType.desktop
         ? 180.0
@@ -31,7 +32,7 @@ class PlaceCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => _handleTap(context, appProvider, isVisited),
+          onTap: () => _handleTap(context, isVisited),
           borderRadius: BorderRadius.circular(24),
           child: Ink(
             decoration: _buildDecoration(isVisited),
@@ -47,10 +48,15 @@ class PlaceCard extends StatelessWidget {
     );
   }
 
-  void _handleTap(
-      BuildContext context, AppProvider appProvider, bool isVisited) {
+  void _handleTap(BuildContext context, bool isVisited) {
     if (!isVisited) {
-      appProvider.visitPlace(place.id);
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final progressProvider =
+          Provider.of<GameProgressProvider>(context, listen: false);
+
+      userProvider.addPoints(10);
+      progressProvider.visitPlace(place.id);
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(

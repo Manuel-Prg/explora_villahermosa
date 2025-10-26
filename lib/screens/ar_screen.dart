@@ -1,6 +1,8 @@
+// lib/screens/ar_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/app_provider.dart';
+import '../providers/user_provider.dart';
+import '../providers/game_progress_provider.dart';
 import '../widgets/ar/ar_header.dart';
 import '../widgets/ar/ar_3d_viewer.dart';
 import '../widgets/ar/ar_instructions.dart';
@@ -57,9 +59,12 @@ class _ARScreenState extends State<ARScreen> with TickerProviderStateMixin {
       context: context,
       monument: monument,
       onClaim: () {
-        final provider = Provider.of<AppProvider>(context, listen: false);
-        provider.addPoints(monument.points);
-        provider.visitPlace(monument.id);
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        final progressProvider =
+            Provider.of<GameProgressProvider>(context, listen: false);
+
+        userProvider.addPoints(monument.points);
+        progressProvider.visitPlace(monument.id);
       },
     );
   }

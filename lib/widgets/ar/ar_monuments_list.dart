@@ -1,6 +1,7 @@
+// lib/widgets/ar/ar_monuments_list.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/app_provider.dart';
+import '../../providers/game_progress_provider.dart';
 import '../../models/monument_model.dart';
 import '../../utils/responsive_utils.dart';
 
@@ -96,8 +97,8 @@ class _MonumentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<AppProvider>(context);
-    final isVisited = provider.visitedPlaces.contains(monument.id);
+    final progressProvider = Provider.of<GameProgressProvider>(context);
+    final isVisited = progressProvider.visitedPlaces.contains(monument.id);
     final borderRadius = ResponsiveUtils.getBorderRadius(deviceType);
 
     return GestureDetector(

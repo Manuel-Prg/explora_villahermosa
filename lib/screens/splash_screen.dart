@@ -1,10 +1,13 @@
 // lib/screens/splash_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/app_provider.dart';
+import '../providers/user_provider.dart';
+import '../providers/pet_provider.dart';
+import '../providers/game_progress_provider.dart';
+import '../providers/inventory_provider.dart';
 import '../services/storage_service.dart';
 import '../utils/page_transtition.dart';
-import 'main_navegation.dart';
+import '../screens/main_navegation.dart';
 import 'onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -62,11 +65,23 @@ class _SplashScreenState extends State<SplashScreen>
     try {
       debugPrint('🚀 Iniciando carga de splash...');
 
-      // Cargar datos del usuario
-      final provider = Provider.of<AppProvider>(context, listen: false);
-      await provider.loadData();
+      // Cargar datos de todos los providers
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final petProvider = Provider.of<PetProvider>(context, listen: false);
+      final gameProgressProvider =
+          Provider.of<GameProgressProvider>(context, listen: false);
+      final inventoryProvider =
+          Provider.of<InventoryProvider>(context, listen: false);
 
-      debugPrint('✅ Datos cargados exitosamente');
+      // Cargar datos en paralelo
+      await Future.wait([
+        userProvider.loadData(),
+        petProvider.loadData(),
+        gameProgressProvider.loadData(),
+        inventoryProvider.loadData(),
+      ]);
+
+      debugPrint('✅ Todos los datos cargados exitosamente');
 
       // Esperar mínimo 2.5 segundos para mostrar el splash
       await Future.delayed(const Duration(milliseconds: 2500));
@@ -81,14 +96,12 @@ class _SplashScreenState extends State<SplashScreen>
 
       if (isFirstTime) {
         debugPrint('➡️ Navegando a Onboarding');
-        // Ir a onboarding
         Navigator.pushReplacement(
           context,
           FadePageRoute(page: const OnboardingScreen()),
         );
       } else {
         debugPrint('➡️ Navegando a MainNavigation');
-        // Ir directo a MainNavigationScreen (con bottom nav)
         Navigator.pushReplacement(
           context,
           FadePageRoute(page: const MainNavigationScreen()),
@@ -98,7 +111,6 @@ class _SplashScreenState extends State<SplashScreen>
       debugPrint('❌ Error en splash: $e');
       debugPrint('Stack trace: $stackTrace');
 
-      // En caso de error, ir a MainNavigationScreen de todos modos
       if (mounted) {
         debugPrint('⚠️ Navegando a MainNavigation por error');
         Navigator.pushReplacement(
@@ -138,10 +150,7 @@ class _SplashScreenState extends State<SplashScreen>
             builder: (context, child) {
               return Stack(
                 children: [
-                  // Círculos decorativos de fondo
                   _buildBackgroundCircles(),
-
-                  // Contenido principal
                   Center(
                     child: FadeTransition(
                       opacity: _fadeAnimation,
@@ -150,38 +159,26 @@ class _SplashScreenState extends State<SplashScreen>
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            // Logo/Icono
                             _buildLogo(),
-
                             SizedBox(
                               height: 40 - (_slideAnimation.value * 0.5),
                             ),
-
-                            // Título
                             Transform.translate(
                               offset: Offset(0, _slideAnimation.value),
                               child: _buildTitle(),
                             ),
-
                             const SizedBox(height: 12),
-
-                            // Subtítulo
                             Transform.translate(
                               offset: Offset(0, _slideAnimation.value * 1.5),
                               child: _buildSubtitle(),
                             ),
-
                             const SizedBox(height: 60),
-
-                            // Loading indicator
                             _buildLoadingIndicator(),
                           ],
                         ),
                       ),
                     ),
                   ),
-
-                  // Versión en la parte inferior
                   Positioned(
                     bottom: 30,
                     left: 0,

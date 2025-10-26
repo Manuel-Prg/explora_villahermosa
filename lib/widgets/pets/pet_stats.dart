@@ -1,11 +1,14 @@
+// lib/widgets/pets/pet_stats.dart
 import 'package:flutter/material.dart';
-import '../../providers/app_provider.dart';
+import 'package:provider/provider.dart';
+import '../../providers/pet_provider.dart';
+import '../../providers/inventory_provider.dart';
 import '../../models/shop_item_model.dart';
 import '../../utils/responsive_utils.dart';
 import 'pet_shop_dialog.dart';
 
 class PetStatsWidget extends StatelessWidget {
-  final AppProvider provider;
+  final PetProvider provider;
   final DeviceType deviceType;
   final VoidCallback onFeedPet;
   final VoidCallback onPlayWithPet;
@@ -240,9 +243,11 @@ class PetStatsWidget extends StatelessWidget {
   }
 
   void _showFeedMenu(BuildContext context) {
+    final inventoryProvider =
+        Provider.of<InventoryProvider>(context, listen: false);
     final foodItems = ShopData.getItemsByCategory(ItemCategory.food);
     final availableFood =
-        foodItems.where((item) => provider.hasItem(item.id)).toList();
+        foodItems.where((item) => inventoryProvider.hasItem(item.id)).toList();
 
     if (availableFood.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -280,7 +285,7 @@ class PetStatsWidget extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             ...availableFood.map((item) {
-              final count = provider.getItemCount(item.id);
+              final count = inventoryProvider.getItemCount(item.id);
               return ListTile(
                 leading: Text(item.emoji, style: const TextStyle(fontSize: 40)),
                 title: Text(item.name),
@@ -300,6 +305,7 @@ class PetStatsWidget extends StatelessWidget {
                   ),
                 ),
                 onTap: () {
+                  inventoryProvider.useItem(item.id);
                   provider.feedPet(item.id);
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -320,9 +326,11 @@ class PetStatsWidget extends StatelessWidget {
   }
 
   void _showPlayMenu(BuildContext context) {
+    final inventoryProvider =
+        Provider.of<InventoryProvider>(context, listen: false);
     final toyItems = ShopData.getItemsByCategory(ItemCategory.toy);
     final availableToys =
-        toyItems.where((item) => provider.hasItem(item.id)).toList();
+        toyItems.where((item) => inventoryProvider.hasItem(item.id)).toList();
 
     showModalBottomSheet(
       context: context,
@@ -377,7 +385,7 @@ class PetStatsWidget extends StatelessWidget {
               )
             else
               ...availableToys.map((item) {
-                final count = provider.getItemCount(item.id);
+                final count = inventoryProvider.getItemCount(item.id);
                 return ListTile(
                   leading:
                       Text(item.emoji, style: const TextStyle(fontSize: 40)),
@@ -398,6 +406,7 @@ class PetStatsWidget extends StatelessWidget {
                     ),
                   ),
                   onTap: () {
+                    inventoryProvider.useItem(item.id);
                     provider.playWithPet(toyType: item.id);
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(

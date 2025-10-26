@@ -1,10 +1,11 @@
+// lib/widgets/pets/pet_selector.dart
 import 'package:flutter/material.dart';
-import '../../providers/app_provider.dart';
+import '../../providers/pet_provider.dart';
 import '../../models/pet_model.dart';
 import '../../utils/responsive_utils.dart';
 
 class PetSelectorWidget extends StatelessWidget {
-  final AppProvider provider;
+  final PetProvider provider;
   final DeviceType deviceType;
   final Function(String petId, String petName, Color petColor, bool hasModel)
       onPetSelected;

@@ -1,6 +1,8 @@
+// lib/screens/trivia_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/app_provider.dart';
+import '../providers/user_provider.dart';
+import '../providers/game_progress_provider.dart';
 import '../data/trivia_question.dart';
 import '../utils/responsive_utils.dart';
 import '../widgets/trivia/trivia_header.dart';
@@ -41,11 +43,18 @@ class _TriviaScreenState extends State<TriviaScreen> {
 
     final isCorrect = answer == questions[currentQuestion]['correct'];
 
+    // Obtener providers
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final gameProgress =
+        Provider.of<GameProgressProvider>(context, listen: false);
+
     if (isCorrect) {
       correctAnswers++;
-      Provider.of<AppProvider>(context, listen: false).answerTrivia(true);
+      // Dar puntos por respuesta correcta
+      userProvider.addPoints(10);
+      gameProgress.answerTrivia(true);
     } else {
-      Provider.of<AppProvider>(context, listen: false).answerTrivia(false);
+      gameProgress.answerTrivia(false);
     }
 
     Future.delayed(const Duration(seconds: 2), () {
@@ -64,6 +73,19 @@ class _TriviaScreenState extends State<TriviaScreen> {
   }
 
   void _showCompletionDialog() {
+    // Dar puntos de bonificación al completar
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final gameProgress =
+        Provider.of<GameProgressProvider>(context, listen: false);
+
+    // Bonificación por completar trivia
+    final bonusPoints = (correctAnswers * 5);
+    userProvider.addPoints(bonusPoints);
+
+    // Marcar trivia como completada
+    gameProgress.completeTrivia(
+        'trivia_${DateTime.now().millisecondsSinceEpoch}', correctAnswers);
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -93,7 +115,6 @@ class _TriviaScreenState extends State<TriviaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<AppProvider>(context);
     final question = questions[currentQuestion];
     final deviceType = ResponsiveUtils.fromContext(context);
     final spacing = ResponsiveUtils.getSpacing(deviceType);
@@ -106,7 +127,12 @@ class _TriviaScreenState extends State<TriviaScreen> {
         bottom: false,
         child: Column(
           children: [
-            TriviaHeader(points: provider.points),
+            // Header mostrando puntos del UserProvider
+            Consumer<UserProvider>(
+              builder: (context, userProvider, child) {
+                return TriviaHeader(points: userProvider.points);
+              },
+            ),
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(
